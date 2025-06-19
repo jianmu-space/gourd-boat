@@ -1,0 +1,49 @@
+plugins {
+    id 'maven-publish'
+}
+
+dependencies {
+    // 依赖domain模块
+    implementation project(':gourdboat-domain')
+    
+    // Spring Boot
+    implementation libs.spring.boot.validation
+    
+    // Jackson
+    implementation libs.jackson.annotations
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            pom {
+                name = 'Gourdboat Application API'
+                description = 'Gourdboat 应用服务接口定义和 DTO'
+                url = 'https://github.com/your-org/gourd-boat'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'iceee'
+                        name = '冰宁'
+                        email = 'iceee.xu@gmail.com'
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url = "https://your-maven-repo/releases"
+            credentials {
+                username = System.getenv('MAVEN_USERNAME')
+                password = System.getenv('MAVEN_PASSWORD')
+            }
+        }
+    }
+} 

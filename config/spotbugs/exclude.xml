@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<FindBugsFilter>
+    <!-- 忽略测试代码中的一些规则 -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <BugPattern name="DLS_DEAD_LOCAL_STORE"/>
+        <BugPattern name="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+    </Match>
+
+    <!-- 忽略配置类中的一些规则 -->
+    <Match>
+        <Class name="~.*Config.*"/>
+        <BugPattern name="MS_SHOULD_BE_FINAL"/>
+    </Match>
+
+    <!-- 忽略特定的安全相关规则 -->
+    <Match>
+        <BugPattern name="CRLF_INJECTION_LOGS"/>
+        <BugPattern name="PATH_TRAVERSAL_IN"/>
+        <BugPattern name="PATH_TRAVERSAL_OUT"/>
+    </Match>
+</FindBugsFilter> 

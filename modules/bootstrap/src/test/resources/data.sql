@@ -1,0 +1,2 @@
+     INSERT INTO boat_account (id, user_id, type, provider, identifier, password, status, created_at, updated_at)
+     VALUES ('1', 'u1', 'INTERNAL', 'PASSWORD', 'testuser', '$2a$10$7QJ8QwQwQwQwQwQwQwQwQeQwQwQwQwQwQwQwQwQwQwQwQwQw', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

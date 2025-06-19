@@ -1,0 +1,19 @@
+rootProject.name = 'Gourdboat'
+
+// 领域层
+include 'gourdboat-domain'
+// 应用层
+include 'gourdboat-application'
+// 基础设施层
+include 'gourdboat-infrastructure'
+// 接口层
+include 'gourdboat-interfaces'
+// 启动模块
+include 'gourdboat-bootstrap'
+
+// 设置模块路径
+project(':gourdboat-domain').projectDir = file('modules/domain')
+project(':gourdboat-application').projectDir = file('modules/application')
+project(':gourdboat-infrastructure').projectDir = file('modules/infrastructure')
+project(':gourdboat-interfaces').projectDir = file('modules/interfaces')
+project(':gourdboat-bootstrap').projectDir = file('modules/bootstrap')

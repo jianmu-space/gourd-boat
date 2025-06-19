@@ -1,0 +1,31 @@
+plugins {
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+}
+
+dependencies {
+    // 项目模块依赖
+    implementation project(':gourdboat-domain')
+    implementation project(':gourdboat-application')
+    implementation project(':gourdboat-infrastructure')
+    implementation project(':gourdboat-interfaces')
+    
+    // Spring Boot
+    implementation libs.spring.boot.web
+    implementation libs.spring.boot.security
+    implementation libs.spring.boot.validation
+    implementation libs.spring.boot.dataJpa
+    
+    // 数据库依赖
+    runtimeOnly libs.database.h2
+    runtimeOnly libs.database.postgresql
+    
+    // 开发工具
+    developmentOnly libs.spring.boot.devtools
+}
+
+// 添加 bootRun 配置
+bootRun {
+    enabled = true
+    systemProperty 'spring.profiles.active', 'dev'
+} 

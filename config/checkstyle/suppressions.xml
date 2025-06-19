@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+    "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<suppressions>
+    <!-- 忽略生成的代码 -->
+    <suppress files=".*[/\\]target[/\\].*" checks=".*"/>
+    <suppress files=".*[/\\]generated-sources[/\\].*" checks=".*"/>
+    
+    <!-- 忽略测试代码中的一些规则 -->
+    <suppress files=".*[/\\]test[/\\].*" checks="MagicNumber"/>
+    <suppress files=".*[/\\]test[/\\].*" checks="VisibilityModifier"/>
+    
+    <!-- 忽略配置类中的一些规则 -->
+    <suppress files=".*[/\\]config[/\\].*" checks="HideUtilityClassConstructor"/>
+</suppressions> 

@@ -1,0 +1,146 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version "${springBootVersion}" apply false
+	id 'io.spring.dependency-management' version "${springDependencyManagementVersion}" apply false
+	id 'checkstyle'
+	id 'com.github.spotbugs' version "${spotbugsGradleVersion}"
+}
+
+// 定义依赖映射
+ext {
+	libs = [
+		spring: [
+			boot: [
+				starter: "org.springframework.boot:spring-boot-starter:${springBootVersion}",
+				web: "org.springframework.boot:spring-boot-starter-web:${springBootVersion}",
+				security: "org.springframework.boot:spring-boot-starter-security:${springBootVersion}",
+				validation: "org.springframework.boot:spring-boot-starter-validation:${springBootVersion}",
+				dataJpa: "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}",
+				devtools: "org.springframework.boot:spring-boot-devtools:${springBootVersion}",
+				test: "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+			],
+			security: [
+				test: "org.springframework.security:spring-security-test:${springSecurityTestVersion}"
+			]
+		],
+		database: [
+			h2: "com.h2database:h2:${h2Version}",
+			postgresql: "org.postgresql:postgresql:${postgresqlVersion}"
+		],
+		lombok: [
+			core: "org.projectlombok:lombok:${lombokVersion}"
+		],
+		test: [
+			junitPlatform: "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}"
+		],
+		quality: [
+			checkstyle: "com.puppycrawl.tools:checkstyle:${checkstyleVersion}",
+			spotbugs: "com.github.spotbugs:spotbugs:${spotbugsVersion}",
+			findsecbugs: "com.h3xstream.findsecbugs:findsecbugs-plugin:${findsecbugsVersion}"
+		],
+		jackson: [
+			annotations: "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}",
+			databind: "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}",
+			core: "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}"
+		],
+		jakarta: [
+			servlet: "jakarta.servlet:jakarta.servlet-api:${jakartaServletVersion}"
+		]
+	]
+}
+
+allprojects {
+	group = project.findProperty('projectGroup') ?: 'space.jianmu'
+	version = project.findProperty('projectVersion') ?: '0.0.1-SNAPSHOT'
+	
+	repositories {
+		mavenCentral()
+	}
+}
+
+subprojects {
+	apply plugin: 'java'
+	
+	java {
+		sourceCompatibility = JavaVersion.toVersion(project.findProperty('javaVersion') ?: '17')
+		targetCompatibility = JavaVersion.toVersion(project.findProperty('javaVersion') ?: '17')
+	}
+	
+	dependencies {
+		compileOnly libs.lombok.core
+		annotationProcessor libs.lombok.core
+		
+		testImplementation libs.spring.boot.test
+	}
+	
+	tasks.named('test') {
+		useJUnitPlatform()
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// 只保留必要的依赖
+	checkstyle libs.quality.checkstyle
+	spotbugsPlugins libs.quality.findsecbugs
+	spotbugs libs.quality.spotbugs
+	testRuntimeOnly libs.test.junitPlatform
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+tasks.register('debug', JavaExec) {
+	group = 'application'
+	description = 'Runs the application in debug mode'
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass = 'space.jianmu.gourdboat.GourdBoatApplication'
+	jvmArgs = [
+		'-Xdebug',
+		'-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005'
+	]
+}
+
+checkstyle {
+	toolVersion = '10.12.7'
+	maxWarnings = 0
+	configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+	configDirectory = file("${rootDir}/config/checkstyle")
+	ignoreFailures = false
+	showViolations = true
+}
+
+spotbugs {
+	toolVersion = '4.8.3'
+	effort = 'max'
+	reportLevel = 'medium'
+	excludeFilter = file("${rootDir}/config/spotbugs/exclude.xml")
+}
+
+spotbugsMain {
+	reports {
+		html {
+			required = true
+			outputLocation = file("$buildDir/reports/spotbugs/main.html")
+		}
+	}
+}
+
+spotbugsTest {
+	reports {
+		html {
+			required = true
+			outputLocation = file("$buildDir/reports/spotbugs/test.html")
+		}
+	}
+}

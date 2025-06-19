@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+    id 'io.spring.dependency-management'
+}
+
+dependencies {
+    implementation project(':gourdboat-domain')
+    implementation project(':gourdboat-application')
+    
+    // Spring Boot
+    implementation libs.spring.boot.dataJpa
+    implementation libs.spring.boot.security
+    implementation libs.spring.boot.validation
+    
+    // 数据库
+    runtimeOnly libs.database.h2
+    
+    // JWT
+    implementation "io.jsonwebtoken:jjwt-api:${jwtVersion}"
+    runtimeOnly "io.jsonwebtoken:jjwt-impl:${jwtVersion}"
+    runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jwtVersion}"
+    
+    // Jakarta Servlet
+    compileOnly libs.jakarta.servlet
+    
+    // 测试依赖
+    testImplementation libs.spring.security.test
+} 

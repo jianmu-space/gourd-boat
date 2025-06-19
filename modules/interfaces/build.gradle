@@ -1,0 +1,16 @@
+plugins {
+    id 'io.spring.dependency-management'
+}
+
+dependencies {
+    implementation project(':gourdboat-application')
+    implementation project(':gourdboat-infrastructure')
+    
+    // Spring Boot
+    implementation libs.spring.boot.web
+    implementation libs.spring.boot.validation
+    implementation libs.spring.boot.security
+    
+    // 测试依赖
+    testImplementation libs.spring.security.test
+} 
