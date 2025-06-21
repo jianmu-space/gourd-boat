@@ -36,9 +36,11 @@ GourdBoat 是一个支持多OIDC服务商的认证系统，采用分层架构设
 
 ### 3. 数据库表设计
 数据库表结构定义在以下文件中：
-- **开发/测试环境**: `db/schema/schema.sql` (H2兼容)
+- **开发环境**: `db/schema/schema-postgresql.sql` (PostgreSQL)
+- **测试环境**: `db/schema/schema.sql` (H2兼容)
 - **生产环境**: `db/schema/schema-postgresql.sql` (PostgreSQL)
 - **测试数据**: `modules/bootstrap/src/test/resources/data.sql`
+- **开发数据**: `modules/bootstrap/src/main/resources/data-dev.sql`
 
 主要表结构包括：
 - `boat_account`: 账号表
@@ -47,21 +49,27 @@ GourdBoat 是一个支持多OIDC服务商的认证系统，采用分层架构设
 
 ## 开发最佳实践
 
-### 1. 新增OIDC服务商
+### 1. 开发环境设置
+- **环境设置脚本**: `./scripts/setup-dev-env.sh` 生成JWT密钥和环境配置
+- **PostgreSQL设置**: `./scripts/setup-postgresql-dev.sh` (Docker方式) 或 `./scripts/setup-postgresql-dev-simple.sh` (本地安装)
+- **数据库配置**: 开发环境使用PostgreSQL (端口55000)，测试环境使用H2内存数据库
+- **配置文件**: 使用 `.env.local` 存储敏感配置（不提交到版本控制）
+
+### 2. 新增OIDC服务商
 1. 在 `AuthProvider` 中添加服务商常量
 2. 实现对应的策略类（继承 `OidcProviderStrategy`）
 3. 在 `DynamicOidcStrategyFactory` 中注册策略
 4. 添加数据库配置记录
 
-### 2. 测试规范
+### 3. 测试规范
 - 集成测试使用H2内存数据库
 - 测试数据通过 `data.sql` 初始化
 - 测试配置使用 `application-test.yml`
 
-### 3. 配置管理
-- 开发环境：`application-dev.yml`
-- 测试环境：`application-test.yml`
-- 生产环境：`application.yml`
+### 4. 配置管理
+- 开发环境：`application-dev.yml` (PostgreSQL)
+- 测试环境：`application-test.yml` (H2)
+- 生产环境：`application.yml` (PostgreSQL)
 
 ## 安全架构
 
@@ -91,8 +99,9 @@ GourdBoat 是一个支持多OIDC服务商的认证系统，采用分层架构设
 - Hibernate
 
 ### 数据库
-- 开发/测试：H2
-- 生产：PostgreSQL
+- **开发环境**: PostgreSQL (端口55000)
+- **测试环境**: H2内存数据库
+- **生产环境**: PostgreSQL
 
 ### 构建工具
 - Gradle 8.13
@@ -174,28 +183,34 @@ GourdBoat 是一个支持多OIDC服务商的认证系统，采用分层架构设
 
 ## 常见问题解决
 
-### 1. 测试失败
+### 1. 开发环境设置问题
+- **PostgreSQL连接失败**: 检查Docker容器状态或本地PostgreSQL服务
+- **网络问题**: 使用 `./scripts/setup-postgresql-dev-simple.sh` 进行本地安装
+- **端口冲突**: 检查端口55000是否被占用，或使用默认端口5432
+- **权限问题**: 确保脚本有执行权限 `chmod +x scripts/*.sh`
+
+### 2. 测试失败
 - 检查数据库schema是否正确
 - 确认测试数据是否正确初始化
 - 验证AuthProvider类型使用是否正确
 
-### 2. OIDC认证失败
+### 3. OIDC认证失败
 - 检查client_id和client_secret配置
 - 验证回调URL配置
 - 确认服务商状态是否正常
 - 查看详细的错误码和错误信息
 
-### 3. 数据库连接问题
+### 4. 数据库连接问题
 - 检查数据库连接配置
 - 确认数据库服务是否正常运行
 - 验证数据库权限设置
 
-### 4. 加密相关问题
+### 5. 加密相关问题
 - 确认加密密钥配置正确
 - 检查加密字段是否正常解密
 - 验证加密服务是否正常工作
 
-### 5. 配置验证失败
+### 6. 配置验证失败
 - 检查URL格式是否正确
 - 确认必填字段是否完整
 - 验证Scope格式是否符合规范 
