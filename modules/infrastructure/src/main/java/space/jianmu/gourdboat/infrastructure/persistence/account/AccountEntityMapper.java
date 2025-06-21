@@ -13,7 +13,7 @@ public class AccountEntityMapper {
                 .id(AccountId.of(entity.getId()))
                 .userId(UserId.of(entity.getUserId()))
                 .type(AccountType.valueOf(entity.getType()))
-                .provider(AuthProvider.valueOf(entity.getProvider()))
+                .provider(AuthProvider.of(entity.getProvider()))
                 .identifier(entity.getIdentifier())
                 .password(entity.getPassword())
                 .status(AccountStatus.valueOf(entity.getStatus()))

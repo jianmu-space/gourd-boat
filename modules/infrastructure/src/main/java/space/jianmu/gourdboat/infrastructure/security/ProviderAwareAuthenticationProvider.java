@@ -6,9 +6,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
 import space.jianmu.gourdboat.domain.account.AuthProvider;
 
 /**
@@ -34,7 +34,7 @@ public class ProviderAwareAuthenticationProvider implements AuthenticationProvid
 
         // 对于用户名密码认证，优先使用PASSWORD提供商和组合索引查询
         UserDetails userDetails = userDetailsService.loadUserByProviderAndIdentifier(
-            AuthProvider.PASSWORD, identifier);
+            AuthProvider.of(AuthProvider.PASSWORD), identifier);
         
         // 验证密码
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {

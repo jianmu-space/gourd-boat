@@ -1,0 +1,158 @@
+# GourdBoat 项目 Cursor Rules
+
+## 项目概述
+GourdBoat 是一个支持多OIDC服务商的认证系统，采用分层架构设计，支持动态扩展新的认证服务商。
+
+## 架构设计原则
+
+### 1. 分层架构
+- **Domain层**: 核心业务逻辑和领域模型
+- **Application层**: 应用服务，协调领域对象
+- **Infrastructure层**: 技术实现，包括持久化、外部服务集成
+- **Interfaces层**: 对外接口，包括REST API
+
+### 2. OIDC服务商设计
+- 使用字符串类型而非枚举，支持动态扩展
+- 采用策略模式实现不同服务商的认证逻辑
+- 支持多实例配置（同一服务商可以有多个配置）
+
+### 3. 数据库设计原则
+- 使用逻辑外键而非物理外键，提高性能和灵活性
+- 表名使用 `boat_` 前缀
+- 支持多租户和多实例配置
+
+## 代码规范
+
+### 1. 命名规范
+- 类名：PascalCase
+- 方法名：camelCase
+- 常量：UPPER_SNAKE_CASE
+- 包名：全小写，点分隔
+
+### 2. 文件组织
+- 按功能模块组织包结构
+- 每个模块包含：domain、application、infrastructure、interfaces
+- 测试文件放在对应的test目录下
+
+### 3. 数据库表设计
+数据库表结构定义在以下文件中：
+- **开发/测试环境**: `db/schema/schema.sql` (H2兼容)
+- **生产环境**: `db/schema/schema-postgresql.sql` (PostgreSQL)
+- **测试数据**: `modules/bootstrap/src/test/resources/data.sql`
+
+主要表结构包括：
+- `boat_account`: 账号表
+- `boat_oidc_provider_registry`: OIDC服务商注册表
+- `boat_oidc_config`: OIDC配置表
+
+## 开发最佳实践
+
+### 1. 新增OIDC服务商
+1. 在 `AuthProvider` 中添加服务商常量
+2. 实现对应的策略类（继承 `OidcProviderStrategy`）
+3. 在 `DynamicOidcStrategyFactory` 中注册策略
+4. 添加数据库配置记录
+
+### 2. 测试规范
+- 集成测试使用H2内存数据库
+- 测试数据通过 `data.sql` 初始化
+- 测试配置使用 `application-test.yml`
+
+### 3. 配置管理
+- 开发环境：`application-dev.yml`
+- 测试环境：`application-test.yml`
+- 生产环境：`application.yml`
+
+## 技术栈
+
+### 核心框架
+- Spring Boot 3.2.3
+- Spring Security
+- Spring Data JPA
+- Hibernate
+
+### 数据库
+- 开发/测试：H2
+- 生产：PostgreSQL
+
+### 构建工具
+- Gradle 8.13
+- Java 21+
+
+## 安全考虑
+
+### 1. 密码处理
+- 使用BCrypt加密存储密码
+- 敏感配置信息加密存储
+
+### 2. JWT Token
+- 使用安全的密钥
+- 设置合理的过期时间
+
+### 3. OIDC安全
+- 验证token签名
+- 检查token过期时间
+- 验证client_id和client_secret
+
+## 性能优化
+
+### 1. 数据库
+- 使用逻辑外键避免物理外键约束
+- 合理设置索引
+- 使用连接池
+
+### 2. 缓存策略
+- 缓存OIDC配置信息
+- 缓存用户信息
+
+## 扩展性设计
+
+### 1. 动态服务商注册
+- 支持运行时注册新的OIDC服务商
+- 支持多实例配置
+
+### 2. 策略模式
+- 每个服务商独立的认证策略
+- 易于添加新的认证方式
+
+### 3. 配置驱动
+- 通过数据库配置管理服务商
+- 支持动态启用/禁用服务商
+
+## 监控和日志
+
+### 1. 日志级别
+- 开发环境：DEBUG
+- 生产环境：INFO/WARN
+
+### 2. 关键操作日志
+- 用户登录/登出
+- OIDC认证过程
+- 配置变更
+
+## 部署考虑
+
+### 1. 环境配置
+- 使用环境变量管理敏感信息
+- 支持Docker容器化部署
+
+### 2. 健康检查
+- 数据库连接检查
+- OIDC服务商可用性检查
+
+## 常见问题解决
+
+### 1. 测试失败
+- 检查数据库schema是否正确
+- 确认测试数据是否正确初始化
+- 验证AuthProvider类型使用是否正确
+
+### 2. OIDC认证失败
+- 检查client_id和client_secret配置
+- 验证回调URL配置
+- 确认服务商状态是否正常
+
+### 3. 数据库连接问题
+- 检查数据库连接配置
+- 确认数据库服务是否正常运行
+- 验证数据库权限设置 

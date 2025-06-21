@@ -18,6 +18,6 @@ public record LoginCommand(
 ) {
     // 构造方法，提供默认的provider
     public LoginCommand(String identifier, String password) {
-        this(identifier, password, AuthProvider.PASSWORD);
+        this(identifier, password, AuthProvider.of(AuthProvider.PASSWORD));
     }
 } 

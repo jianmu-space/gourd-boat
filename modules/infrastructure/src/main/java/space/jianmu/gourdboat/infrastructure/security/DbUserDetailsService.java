@@ -19,7 +19,7 @@ public class DbUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
         // 默认使用PASSWORD提供商进行查询（最常见的登录方式）
-        return loadUserByProviderAndIdentifier(AuthProvider.PASSWORD, identifier);
+        return loadUserByProviderAndIdentifier(AuthProvider.of(AuthProvider.PASSWORD), identifier);
     }
 
     /**

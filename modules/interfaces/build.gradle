@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    implementation project(':gourdboat-domain')
     implementation project(':gourdboat-application')
     implementation project(':gourdboat-infrastructure')
     

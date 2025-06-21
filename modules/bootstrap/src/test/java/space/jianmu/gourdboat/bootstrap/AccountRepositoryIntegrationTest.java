@@ -24,11 +24,11 @@ public class AccountRepositoryIntegrationTest {
     @Test
     public void testFindByProviderAndIdentifier() {
         Optional<Account> accountOpt = accountRepository.findByProviderAndIdentifier(
-            AuthProvider.PASSWORD, "testuser");
+            AuthProvider.of(AuthProvider.PASSWORD), "testuser");
         assertTrue(accountOpt.isPresent(), "Account should be found");
         Account account = accountOpt.get();
         assertEquals("testuser", account.getIdentifier());
-        assertEquals("PASSWORD", account.getProvider().name());
+        assertEquals(AuthProvider.PASSWORD, account.getProvider().getValue());
         assertEquals("$2a$10$7QJ8QwQwQwQwQwQwQwQwQeQwQwQwQwQwQwQwQwQwQwQwQwQw", account.getPassword());
     }
 } 
