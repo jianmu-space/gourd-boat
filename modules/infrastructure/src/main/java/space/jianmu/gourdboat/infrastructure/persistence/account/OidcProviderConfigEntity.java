@@ -1,6 +1,7 @@
 package space.jianmu.gourdboat.infrastructure.persistence.account;
 
 import jakarta.persistence.*;
+import space.jianmu.gourdboat.infrastructure.security.EncryptedStringConverter;
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,6 +21,7 @@ public class OidcProviderConfigEntity {
     private String clientId;
 
     @Column(name = "client_secret", nullable = false)
+    @Convert(converter = EncryptedStringConverter.class)
     private String clientSecret;
 
     @Column(name = "issuer_url")

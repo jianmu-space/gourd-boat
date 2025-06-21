@@ -2,6 +2,8 @@ app:
   jwt:
     secret: ${JWT_SECRET}
     expiration: 86400000  # 24 hours in milliseconds
+  encryption:
+    key: ${ENCRYPTION_KEY:default-encryption-key-32-chars-long-for-dev}
 
 spring:
   datasource:
