@@ -13,10 +13,13 @@
 - `OidcConfig`: OIDC配置实体，包含服务商的配置信息
 - `OidcConfigRepository`: OIDC配置仓储接口
 - `ProviderRegistry`: 服务商注册表，支持动态注册
+- `OidcErrorCode`: 错误码枚举，定义标准错误码
+- `OidcAuthenticationException`: 认证异常类，统一异常处理
 
 #### 1.2 应用层 (Application Layer)
 - `OidcService`: OIDC服务接口，定义OIDC认证的核心方法
 - `OidcConfigService`: OIDC配置管理服务
+- `OidcConfigValidator`: 配置验证器，验证配置完整性和有效性
 - DTO类：`OidcAuthResult`, `OidcUserInfo`, `OidcTokenValidationResult`
 
 #### 1.3 基础设施层 (Infrastructure Layer)
@@ -24,10 +27,13 @@
 - `OidcProviderStrategy`: 服务商策略接口
 - 具体策略实现：`WechatMiniAppStrategy`, `WechatMpStrategy`等
 - `DynamicOidcStrategyFactory`: 动态策略工厂，基于Spring Bean管理
+- `EncryptionService`: 加密服务，AES加密敏感信息
+- `EncryptedStringConverter`: JPA加密转换器，自动加密/解密数据库字段
 
 #### 1.4 接口层 (Interface Layer)
 - `OidcController`: OIDC认证控制器，提供REST API
 - `ProviderManagementController`: 服务商管理控制器
+- `GlobalExceptionHandler`: 全局异常处理器，统一异常响应
 
 ### 2. 支持的服务商
 
@@ -45,6 +51,171 @@
 | 字节跳动 | BYTEDANCE | 字节跳动开放平台 | ✅ | BYTEDANCE |
 | Google | GOOGLE | Google OAuth | ✅ | GOOGLE |
 | GitHub | GITHUB | GitHub OAuth | ✅ | GITHUB |
+
+## 安全架构
+
+### 1. 敏感信息加密
+
+#### 1.1 加密服务
+```java
+@Service
+public class EncryptionService {
+    @Value("${app.encryption.key}")
+    private String encryptionKey;
+    
+    /**
+     * AES加密敏感信息
+     */
+    public String encrypt(String plaintext) {
+        // AES加密实现
+    }
+    
+    /**
+     * AES解密敏感信息
+     */
+    public String decrypt(String ciphertext) {
+        // AES解密实现
+    }
+}
+```
+
+#### 1.2 自动加密字段
+```java
+@Entity
+@Table(name = "boat_oidc_provider_config")
+public class OidcProviderConfigEntity {
+    
+    @Column(name = "client_secret", nullable = false)
+    @Convert(converter = EncryptedStringConverter.class)
+    private String clientSecret; // 自动加密存储
+}
+```
+
+#### 1.3 配置方式
+```yaml
+app:
+  encryption:
+    key: ${ENCRYPTION_KEY:default-encryption-key-32-chars-long-for-dev}
+```
+
+### 2. 错误处理机制
+
+#### 2.1 错误码体系
+```java
+public enum OidcErrorCode {
+    // 认证相关错误 (OIDC_001-OIDC_099)
+    INVALID_TOKEN("OIDC_001", "无效的访问令牌"),
+    TOKEN_EXPIRED("OIDC_002", "访问令牌已过期"),
+    TOKEN_SIGNATURE_INVALID("OIDC_003", "令牌签名无效"),
+    INVALID_CLIENT("OIDC_004", "无效的客户端"),
+    INVALID_CLIENT_SECRET("OIDC_005", "无效的客户端密钥"),
+    
+    // 服务商相关错误 (OIDC_101-OIDC_199)
+    PROVIDER_NOT_FOUND("OIDC_101", "OIDC服务商未找到"),
+    PROVIDER_DISABLED("OIDC_102", "OIDC服务商已禁用"),
+    PROVIDER_CONFIG_INVALID("OIDC_103", "OIDC服务商配置无效"),
+    
+    // 网络相关错误 (OIDC_201-OIDC_299)
+    NETWORK_ERROR("OIDC_201", "网络连接错误"),
+    TIMEOUT_ERROR("OIDC_202", "请求超时"),
+    SERVICE_UNAVAILABLE("OIDC_203", "服务不可用"),
+    
+    // 系统内部错误 (OIDC_500-OIDC_599)
+    INTERNAL_ERROR("OIDC_500", "系统内部错误"),
+    CONFIGURATION_ERROR("OIDC_501", "配置错误"),
+    STRATEGY_NOT_FOUND("OIDC_502", "认证策略未找到");
+}
+```
+
+#### 2.2 认证异常
+```java
+public class OidcAuthenticationException extends RuntimeException {
+    private final OidcErrorCode errorCode;
+    private final String provider;
+    private final String details;
+    
+    public OidcAuthenticationException(OidcErrorCode errorCode, String provider) {
+        super(String.format("[%s] %s: %s", provider, errorCode.getCode(), errorCode.getMessage()));
+        this.errorCode = errorCode;
+        this.provider = provider;
+        this.details = null;
+    }
+}
+```
+
+#### 2.3 全局异常处理
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+    
+    @ExceptionHandler(OidcAuthenticationException.class)
+    public ResponseEntity<Map<String, Object>> handleOidcAuthenticationException(OidcAuthenticationException e) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("status", getHttpStatus(e.getErrorCode()).value());
+        response.put("error", "OIDC Authentication Error");
+        response.put("errorCode", e.getErrorCodeString());
+        response.put("message", e.getErrorMessage());
+        response.put("provider", e.getProvider());
+        
+        if (e.getDetails() != null) {
+            response.put("details", e.getDetails());
+        }
+        
+        return ResponseEntity.status(getHttpStatus(e.getErrorCode())).body(response);
+    }
+}
+```
+
+### 3. 配置验证
+
+#### 3.1 配置验证器
+```java
+@Component
+public class OidcConfigValidator {
+    
+    /**
+     * 验证OIDC配置的完整性和有效性
+     */
+    public ValidationResult validate(OidcProviderConfig config) {
+        List<String> errors = new ArrayList<>();
+        
+        // 基本信息验证
+        validateBasicInfo(config, errors);
+        
+        // URL格式验证
+        validateUrls(config, errors);
+        
+        // 端点验证
+        validateEndpoints(config, errors);
+        
+        // 范围验证
+        validateScopes(config, errors);
+        
+        return new ValidationResult(errors.isEmpty(), errors);
+    }
+    
+    /**
+     * 验证配置并抛出异常（如果验证失败）
+     */
+    public void validateAndThrow(OidcProviderConfig config) {
+        ValidationResult result = validate(config);
+        if (!result.isValid()) {
+            throw new OidcAuthenticationException(
+                OidcErrorCode.PROVIDER_CONFIG_INVALID,
+                config.getProviderCode(),
+                String.join("; ", result.getErrors())
+            );
+        }
+    }
+}
+```
+
+#### 3.2 验证内容
+- **基本信息验证**: provider_code、client_id、client_secret等必填字段
+- **URL格式验证**: 验证所有URL的格式正确性
+- **端点安全性验证**: 生产环境强制使用HTTPS
+- **Scope格式验证**: 验证授权范围的格式正确性
 
 ### 3. 数据库设计
 
@@ -70,7 +241,7 @@ CREATE TABLE IF NOT EXISTS boat_oidc_provider_config (
     provider_code VARCHAR(50) NOT NULL,         -- 关联的服务商代码（逻辑外键）
     provider_name VARCHAR(100) NOT NULL,        -- 服务商名称
     client_id VARCHAR(200) NOT NULL,            -- 客户端ID
-    client_secret VARCHAR(500) NOT NULL,        -- 客户端密钥
+    client_secret VARCHAR(500) NOT NULL,        -- 客户端密钥（加密存储）
     issuer_url VARCHAR(500),                    -- 发行者URL
     authorization_endpoint VARCHAR(500),        -- 授权端点
     token_endpoint VARCHAR(500),                -- 令牌端点
@@ -152,7 +323,15 @@ public class DynamicOidcStrategyFactory {
     
     // 根据provider_code自动获取策略
     public OidcProviderStrategy getStrategy(String providerCode) {
-        return strategyMap.get(providerCode);
+        OidcProviderStrategy strategy = strategyMap.get(providerCode);
+        if (strategy == null) {
+            throw new OidcAuthenticationException(
+                OidcErrorCode.STRATEGY_NOT_FOUND,
+                providerCode,
+                "策略未找到: " + providerCode
+            );
+        }
+        return strategy;
     }
     
     // 获取所有可用策略
@@ -198,149 +377,172 @@ Authorization: Bearer {accessToken}
 
 #### 5.5 服务商管理
 ```
-GET /api/providers                    # 获取所有服务商
-GET /api/providers/group/{group}      # 获取指定分组服务商
-POST /api/providers/register          # 注册新服务商
-GET /api/providers/{code}/exists      # 检查服务商是否存在
+GET /api/oidc/providers - 获取所有服务商
+POST /api/oidc/providers - 注册新服务商
+PUT /api/oidc/providers/{code} - 更新服务商
+DELETE /api/oidc/providers/{code} - 删除服务商
 ```
 
-### 6. 使用示例
-
-#### 6.1 微信小程序登录
-```java
-// 1. 前端获取code
-String code = "wx_code_from_miniapp";
-
-// 2. 后端处理登录
-OidcAuthResult result = oidcService.handleAuthorizationCode(
-    "WECHAT_MINIAPP", 
-    "wechat_miniapp_001", 
-    code, 
-    "state", 
-    "redirect_uri"
-);
-
-// 3. 获取用户信息
-OidcUserInfo userInfo = result.getUserInfo();
-```
-
-#### 6.2 微信公众号登录
-```java
-// 1. 生成授权URL
-String authUrl = oidcService.generateAuthorizationUrl(
-    "WECHAT_MP", 
-    "wechat_mp_001", 
-    "state", 
-    "https://example.com/callback"
-);
-
-// 2. 用户访问授权URL，获取code
-
-// 3. 处理回调
-OidcAuthResult result = oidcService.handleAuthorizationCode(
-    "WECHAT_MP", 
-    "wechat_mp_001", 
-    code, 
-    "state", 
-    "https://example.com/callback"
-);
-```
-
-### 7. 扩展性设计
-
-#### 7.1 添加新服务商（无需代码修改）
-```sql
--- 1. 注册新服务商
-INSERT INTO boat_oidc_provider_registry (
-    provider_code, 
-    provider_name, 
-    description, 
-    provider_group, 
-    enabled
-) VALUES (
-    'CUSTOM_PROVIDER', 
-    '自定义服务商', 
-    '自定义OIDC服务商', 
-    'CUSTOM_GROUP', 
-    true
-);
-
--- 2. 添加配置
-INSERT INTO boat_oidc_provider_config (
-    config_id, 
-    provider_code, 
-    provider_name, 
-    client_id, 
-    client_secret, 
-    enabled, 
-    description
-) VALUES (
-    'custom_provider_001', 
-    'CUSTOM_PROVIDER', 
-    '自定义服务商1', 
-    'client_id', 
-    'client_secret', 
-    true, 
-    '自定义服务商配置'
-);
-```
-
-#### 7.2 实现新策略（需要代码）
-```java
-@Component
-public class CustomProviderStrategy implements OidcProviderStrategy {
-    
-    @Override
-    public String getProviderCode() {
-        return "CUSTOM_PROVIDER";
-    }
-    
-    @Override
-    public String generateAuthorizationUrl(OidcConfig config, String state, String redirectUri) {
-        // 实现自定义授权URL生成逻辑
-        return "https://custom-provider.com/oauth/authorize?...";
-    }
-    
-    // 其他方法实现...
+#### 5.6 错误响应格式
+```json
+{
+    "timestamp": "2025-06-21T17:30:00",
+    "status": 401,
+    "error": "OIDC Authentication Error",
+    "errorCode": "OIDC_001",
+    "message": "无效的访问令牌",
+    "provider": "WECHAT_MP",
+    "details": "Token signature verification failed"
 }
 ```
 
-#### 7.3 添加新实例
-1. 在数据库中添加新的配置记录
-2. 使用不同的`configId`区分实例
-3. 前端根据业务需求选择对应的配置
+### 6. 扩展机制
 
-### 8. 架构优势
+#### 6.1 添加新的OIDC服务商
 
-#### 8.1 动态扩展
-- **无需修改代码**: 添加新服务商不需要修改枚举
-- **运行时注册**: 支持应用运行时注册新服务商
-- **配置驱动**: 通过数据库管理服务商
+1. **定义服务商常量**
+```java
+public class AuthProvider {
+    public static final String NEW_PROVIDER = "NEW_PROVIDER";
+}
+```
 
-#### 8.2 Spring集成
-- **自动Bean管理**: 策略类自动注册为Spring Bean
-- **依赖注入**: 利用Spring的IoC容器管理策略
-- **类型安全**: 编译时检查，避免运行时错误
+2. **实现策略类**
+```java
+@Component
+public class NewProviderStrategy implements OidcProviderStrategy {
+    @Override
+    public String getProviderCode() {
+        return AuthProvider.NEW_PROVIDER;
+    }
+    
+    @Override
+    public OidcAuthResult handleAuthorizationCode(OidcConfig config, String code, String state, String redirectUri) {
+        try {
+            // 实现具体的认证逻辑
+            return result;
+        } catch (Exception e) {
+            throw new OidcAuthenticationException(
+                OidcErrorCode.INTERNAL_ERROR,
+                config.getProviderCode(),
+                "处理授权码失败: " + e.getMessage(),
+                e
+            );
+        }
+    }
+    
+    // 实现其他方法...
+}
+```
 
-#### 8.3 高性能设计
-- **逻辑外键**: 无物理外键约束，提高性能
-- **索引优化**: 复合索引支持高效查询
-- **分库分表**: 支持大型项目架构需求
+3. **注册策略**
+```java
+@Configuration
+public class OidcStrategyConfig {
+    
+    @PostConstruct
+    public void registerStrategies() {
+        // 策略会自动注册到Spring容器中
+        log.info("OIDC策略注册完成，共注册 {} 个策略", strategyFactory.getAllStrategies().size());
+    }
+}
+```
 
-### 9. 安全考虑
+4. **添加数据库配置**
+```sql
+-- 注册服务商
+INSERT INTO boat_oidc_provider_registry (
+    provider_code, provider_name, description, provider_group, enabled
+) VALUES (
+    'NEW_PROVIDER', 'New Provider', '新服务商描述', 'CUSTOM', true
+);
 
-1. **配置安全**: 客户端密钥等敏感信息需要加密存储
-2. **状态验证**: 使用state参数防止CSRF攻击
-3. **Token验证**: 验证ID Token的签名和有效期
-4. **权限控制**: 不同配置实例可以有不同的权限范围
-5. **数据验证**: 应用层验证保证逻辑外键的数据一致性
+-- 添加配置
+INSERT INTO boat_oidc_provider_config (
+    config_id, provider_code, provider_name, client_id, client_secret,
+    authorization_endpoint, token_endpoint, enabled
+) VALUES (
+    'new-config-123', 'NEW_PROVIDER', 'New Provider Config', 'client-id', 'client-secret',
+    'https://provider.com/oauth/authorize', 'https://provider.com/oauth/token', true
+);
+```
+
+### 7. 监控和日志
+
+#### 7.1 日志记录
+- OIDC认证过程的详细日志
+- 错误异常记录
+- 配置变更日志
+- 策略注册日志
+
+#### 7.2 错误监控
+- 详细的错误码统计
+- 服务商级别的错误分析
+- 异常堆栈信息记录
+- 性能监控指标
+
+### 8. 部署配置
+
+#### 8.1 环境变量配置
+```bash
+# 加密密钥（生产环境必须设置）
+export ENCRYPTION_KEY="your-secure-encryption-key-32-chars-long"
+
+# JWT密钥
+export JWT_SECRET="your-jwt-secret-key"
+
+# 数据库配置
+export DB_URL="jdbc:postgresql://localhost:5432/gourdboat"
+export DB_USERNAME="gourdboat"
+export DB_PASSWORD="your-db-password"
+```
+
+#### 8.2 配置文件
+```yaml
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: 86400000
+  encryption:
+    key: ${ENCRYPTION_KEY:default-encryption-key-32-chars-long-for-dev}
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+```
+
+### 9. 安全最佳实践
+
+#### 9.1 密钥管理
+- 使用环境变量管理敏感密钥
+- 定期轮换加密密钥
+- 不同环境使用不同的密钥
+
+#### 9.2 配置安全
+- 敏感配置信息加密存储
+- 配置验证确保完整性
+- 生产环境强制使用HTTPS
+
+#### 9.3 错误处理
+- 不泄露敏感信息在错误消息中
+- 统一的错误响应格式
+- 详细的错误日志记录
+
+#### 9.4 访问控制
+- 验证客户端身份
+- 检查访问权限
+- 监控异常访问行为
 
 ## 总结
 
-这个架构设计提供了以下优势：
+动态OIDC架构具有以下优势：
 
-1. **灵活性**: 支持多个服务商和多个实例
-2. **可扩展性**: 易于添加新的服务商和实例
-3. **可维护性**: 清晰的层次结构和职责分离
-4. **可测试性**: 接口和实现分离，便于单元测试
-5. **安全性**: 完善的配置管理和安全措施 
+1. **高扩展性**: 支持运行时动态添加新的OIDC服务商
+2. **强安全性**: 敏感信息加密、配置验证、统一错误处理
+3. **易维护性**: 策略模式、分层架构、模块化设计
+4. **高性能**: 缓存策略、连接池、异步处理
+5. **可监控**: 详细日志、错误统计、性能指标
+
+通过这种设计，系统能够安全、高效、灵活地支持多个OIDC服务商的认证需求，同时保持良好的可维护性和扩展性。 

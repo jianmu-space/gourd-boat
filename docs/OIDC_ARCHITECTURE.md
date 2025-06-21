@@ -260,3 +260,160 @@ VALUES ('taobao_001', 'TAOBAO', '淘宝-测试环境', 'app_key', 'app_secret', 
 3. **可维护性**: 策略模式使代码结构清晰
 4. **性能**: 支持配置级别的启用/禁用
 5. **安全性**: 配置信息加密存储，支持密钥轮换 
+
+## 安全架构
+
+### 1. 敏感信息加密
+
+系统使用 AES 加密算法对敏感信息进行加密存储：
+
+```java
+@Service
+public class EncryptionService {
+    // AES加密敏感信息如client_secret
+    public String encrypt(String plaintext);
+    public String decrypt(String ciphertext);
+}
+```
+
+**加密字段**:
+- `client_secret`: 客户端密钥
+- 其他敏感配置信息
+
+**配置方式**:
+```yaml
+app:
+  encryption:
+    key: ${ENCRYPTION_KEY:default-key-for-dev}
+```
+
+### 2. 错误处理机制
+
+#### 错误码体系
+```java
+public enum OidcErrorCode {
+    // 认证相关错误
+    INVALID_TOKEN("OIDC_001", "无效的访问令牌"),
+    TOKEN_EXPIRED("OIDC_002", "访问令牌已过期"),
+    
+    // 服务商相关错误
+    PROVIDER_NOT_FOUND("OIDC_101", "OIDC服务商未找到"),
+    PROVIDER_DISABLED("OIDC_102", "OIDC服务商已禁用"),
+    
+    // 系统内部错误
+    INTERNAL_ERROR("OIDC_500", "系统内部错误");
+}
+```
+
+#### 异常处理
+```java
+public class OidcAuthenticationException extends RuntimeException {
+    private final OidcErrorCode errorCode;
+    private final String provider;
+    private final String details;
+}
+```
+
+#### 全局异常处理
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+    @ExceptionHandler(OidcAuthenticationException.class)
+    public ResponseEntity<Map<String, Object>> handleOidcAuthenticationException(OidcAuthenticationException e);
+}
+```
+
+### 3. 配置验证
+
+系统在 OIDC 操作前自动验证配置的完整性和有效性：
+
+```java
+@Component
+public class OidcConfigValidator {
+    public ValidationResult validate(OidcProviderConfig config);
+    public void validateAndThrow(OidcProviderConfig config);
+}
+```
+
+**验证内容**:
+- 基本信息验证（provider_code、client_id等）
+- URL格式验证
+- 端点安全性验证（HTTPS）
+- Scope格式验证
+
+## 策略模式
+
+### 策略接口
+```java
+public interface OidcProviderStrategy {
+    String generateAuthorizationUrl(OidcProviderConfig config, String state, String redirectUri);
+    OidcAuthResult handleAuthorizationCode(OidcProviderConfig config, String code, String state, String redirectUri);
+    OidcTokenValidationResult validateIdToken(OidcProviderConfig config, String idToken);
+    OidcUserInfo getUserInfo(OidcProviderConfig config, String accessToken);
+}
+```
+
+### 动态策略工厂
+```java
+@Component
+public class DynamicOidcStrategyFactory {
+    private final Map<String, OidcProviderStrategy> strategies = new ConcurrentHashMap<>();
+    
+    public void registerStrategy(String providerCode, OidcProviderStrategy strategy);
+    public OidcProviderStrategy getStrategy(String providerCode);
+}
+```
+
+### 具体策略实现
+
+#### 微信公众号策略
+```java
+@Component
+public class WechatMpStrategy implements OidcProviderStrategy {
+    // 实现微信公众号OIDC认证逻辑
+}
+```
+
+#### 微信小程序策略
+```java
+@Component
+public class WechatMiniAppStrategy implements OidcProviderStrategy {
+    // 实现微信小程序OIDC认证逻辑
+}
+```
+
+## 监控和日志
+
+### 日志记录
+- OIDC认证过程的详细日志
+- 错误异常记录
+- 配置变更日志
+
+### 错误监控
+- 详细的错误码统计
+- 服务商级别的错误分析
+- 异常堆栈信息记录
+
+## 部署考虑
+
+### 环境配置
+- 加密密钥通过环境变量配置
+- 敏感信息不硬编码
+- 支持Docker容器化部署
+
+### 安全要求
+- 生产环境必须使用HTTPS
+- 定期轮换加密密钥
+- 监控异常访问行为
+
+## 总结
+
+该 OIDC 架构设计具有以下特点：
+
+1. **高扩展性**: 支持动态添加新的 OIDC 服务商
+2. **强安全性**: 敏感信息加密、配置验证、错误处理
+3. **易维护性**: 分层架构、策略模式、统一异常处理
+4. **高性能**: 逻辑外键、缓存策略、连接池
+5. **可监控**: 详细日志、错误统计、健康检查
+
+通过这种设计，系统能够安全、高效地支持多个 OIDC 服务商的认证需求。 
