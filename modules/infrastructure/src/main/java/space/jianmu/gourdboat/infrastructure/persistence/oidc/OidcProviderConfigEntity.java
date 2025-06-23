@@ -1,8 +1,13 @@
 package space.jianmu.gourdboat.infrastructure.persistence.oidc;
 
-import jakarta.persistence.*;
-import space.jianmu.gourdboat.infrastructure.security.EncryptedStringConverter;
 import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import space.jianmu.gourdboat.infrastructure.security.EncryptedStringConverter;
 
 @Entity
 @Table(name = "boat_oidc_provider_config")
