@@ -1,8 +1,9 @@
-package space.jianmu.gourdboat.infrastructure.persistence.account;
+package space.jianmu.gourdboat.infrastructure.persistence.oidc;
 
 import org.springframework.stereotype.Component;
 import space.jianmu.gourdboat.domain.account.AuthProvider;
 import space.jianmu.gourdboat.domain.oidc.OidcProviderConfig;
+import space.jianmu.gourdboat.infrastructure.persistence.oidc.OidcProviderConfigEntity;
 
 @Component
 public class OidcProviderConfigEntityMapper {

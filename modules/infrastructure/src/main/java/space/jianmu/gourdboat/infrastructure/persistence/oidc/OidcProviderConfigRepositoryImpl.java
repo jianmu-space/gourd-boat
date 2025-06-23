@@ -1,4 +1,4 @@
-package space.jianmu.gourdboat.infrastructure.persistence.account;
+package space.jianmu.gourdboat.infrastructure.persistence.oidc;
 
 import space.jianmu.gourdboat.domain.account.AuthProvider;
 import space.jianmu.gourdboat.domain.oidc.OidcProviderConfig;
@@ -7,6 +7,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import space.jianmu.gourdboat.infrastructure.persistence.oidc.OidcProviderConfigEntity;
+import space.jianmu.gourdboat.infrastructure.persistence.oidc.OidcProviderConfigEntityMapper;
+import space.jianmu.gourdboat.infrastructure.persistence.oidc.OidcProviderConfigJpaRepository;
 
 @Repository
 public class OidcProviderConfigRepositoryImpl implements OidcProviderConfigRepository {

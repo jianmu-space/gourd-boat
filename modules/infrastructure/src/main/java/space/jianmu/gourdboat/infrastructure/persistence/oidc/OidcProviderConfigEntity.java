@@ -1,4 +1,4 @@
-package space.jianmu.gourdboat.infrastructure.persistence.account;
+package space.jianmu.gourdboat.infrastructure.persistence.oidc;
 
 import jakarta.persistence.*;
 import space.jianmu.gourdboat.infrastructure.security.EncryptedStringConverter;
