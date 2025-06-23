@@ -5,8 +5,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import space.jianmu.gourdboat.domain.account.OidcAuthenticationException;
-import space.jianmu.gourdboat.domain.account.OidcErrorCode;
+import space.jianmu.gourdboat.domain.oidc.OidcAuthenticationException;
+import space.jianmu.gourdboat.domain.oidc.OidcErrorCode;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;

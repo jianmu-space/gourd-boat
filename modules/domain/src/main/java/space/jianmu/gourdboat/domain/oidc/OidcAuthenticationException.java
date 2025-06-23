@@ -1,4 +1,4 @@
-package space.jianmu.gourdboat.domain.account;
+package space.jianmu.gourdboat.domain.oidc;
 
 /**
  * OIDC认证异常

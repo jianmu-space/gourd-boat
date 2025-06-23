@@ -3,7 +3,7 @@ package space.jianmu.gourdboat.interfaces.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import space.jianmu.gourdboat.domain.account.OidcProviderRegistry;
+import space.jianmu.gourdboat.domain.oidc.OidcProviderRegistry;
 import space.jianmu.gourdboat.infrastructure.auth.DynamicOidcStrategyFactory;
 
 import java.util.Map;

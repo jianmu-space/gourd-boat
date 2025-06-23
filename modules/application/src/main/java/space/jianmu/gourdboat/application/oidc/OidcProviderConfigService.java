@@ -1,7 +1,7 @@
 package space.jianmu.gourdboat.application.auth;
 
 import space.jianmu.gourdboat.domain.account.AuthProvider;
-import space.jianmu.gourdboat.domain.account.OidcProviderConfig;
+import space.jianmu.gourdboat.domain.oidc.OidcProviderConfig;
 
 import java.util.List;
 

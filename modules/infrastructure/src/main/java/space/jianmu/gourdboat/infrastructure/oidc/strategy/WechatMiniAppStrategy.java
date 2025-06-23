@@ -8,7 +8,7 @@ import space.jianmu.gourdboat.application.auth.dto.OidcAuthResult;
 import space.jianmu.gourdboat.application.auth.dto.OidcTokenValidationResult;
 import space.jianmu.gourdboat.application.auth.dto.OidcUserInfo;
 import space.jianmu.gourdboat.domain.account.AuthProvider;
-import space.jianmu.gourdboat.domain.account.OidcProviderConfig;
+import space.jianmu.gourdboat.domain.oidc.OidcProviderConfig;
 import space.jianmu.gourdboat.infrastructure.auth.OidcProviderStrategy;
 
 /**

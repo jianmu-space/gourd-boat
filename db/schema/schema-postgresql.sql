@@ -22,7 +22,7 @@ COMMENT ON COLUMN boat_account.identifier IS '账号标识（如邮箱、手机�
 COMMENT ON COLUMN boat_account.password IS '账号密码（BCrypt等加密存储，仅内部账号使用）';
 COMMENT ON COLUMN boat_account.status IS '账号状态（如ACTIVE、INACTIVE、LOCKED等）';
 COMMENT ON COLUMN boat_account.created_at IS '创建时间';
-COMMENT ON COLUMN boat_account.updated_at IS '更新时间';
+COMMENT ON COLUMN boat_account.updated_at IS '更新时间'; 
 
 -- 创建索引
 CREATE INDEX IF NOT EXISTS idx_boat_account_user_id ON boat_account(user_id);

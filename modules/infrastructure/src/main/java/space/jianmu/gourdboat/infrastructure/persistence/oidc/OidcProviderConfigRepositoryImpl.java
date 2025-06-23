@@ -1,8 +1,8 @@
 package space.jianmu.gourdboat.infrastructure.persistence.account;
 
 import space.jianmu.gourdboat.domain.account.AuthProvider;
-import space.jianmu.gourdboat.domain.account.OidcProviderConfig;
-import space.jianmu.gourdboat.domain.account.OidcProviderConfigRepository;
+import space.jianmu.gourdboat.domain.oidc.OidcProviderConfig;
+import space.jianmu.gourdboat.domain.oidc.OidcProviderConfigRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;

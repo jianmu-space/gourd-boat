@@ -2,9 +2,9 @@ package space.jianmu.gourdboat.application.auth;
 
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import space.jianmu.gourdboat.domain.account.OidcProviderConfig;
-import space.jianmu.gourdboat.domain.account.OidcErrorCode;
-import space.jianmu.gourdboat.domain.account.OidcAuthenticationException;
+import space.jianmu.gourdboat.domain.oidc.OidcProviderConfig;
+import space.jianmu.gourdboat.domain.oidc.OidcErrorCode;
+import space.jianmu.gourdboat.domain.oidc.OidcAuthenticationException;
 
 import java.net.URI;
 import java.net.URISyntaxException;

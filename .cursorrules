@@ -228,4 +228,31 @@ GourdBoat 是一个支持多OIDC服务商的认证系统，采用分层架构设
 ### 6. 配置验证失败
 - 检查URL格式是否正确。
 - 确认必填字段是否完整。
-- 验证Scope格式是否符合规范。 
+- 验证Scope格式是否符合规范。
+
+## OIDC 相关分层聚合与包结构规范（补充）
+
+### 1. 分层聚合要求
+- OIDC 相关领域模型、服务、DTO、策略、controller、validator 等，必须全部归入各自层的 `oidc` 子包，避免混杂在 `account`、`auth` 等包下。
+- OIDC 相关持久化实现应统一放在 `infrastructure/persistence/oidc/` 目录，与 `account` 聚合保持一致。
+- 包声明必须与物理目录结构严格一致，禁止出现 `infrastructure.auth.strategy` 等不规范包声明。
+
+### 2. 推荐包结构举例
+- `modules/domain/src/main/java/space/jianmu/gourdboat/domain/oidc/OidcProviderConfig.java`
+- `modules/domain/src/main/java/space/jianmu/gourdboat/domain/oidc/OidcProviderRegistry.java`
+- `modules/application/src/main/java/space/jianmu/gourdboat/application/oidc/OidcService.java`
+- `modules/application/src/main/java/space/jianmu/gourdboat/application/oidc/OidcProviderConfigValidator.java`
+- `modules/application/src/main/java/space/jianmu/gourdboat/application/oidc/dto/OidcAuthResult.java`
+- `modules/infrastructure/src/main/java/space/jianmu/gourdboat/infrastructure/oidc/OidcServiceImpl.java`
+- `modules/infrastructure/src/main/java/space/jianmu/gourdboat/infrastructure/oidc/DynamicOidcStrategyFactory.java`
+- `modules/infrastructure/src/main/java/space/jianmu/gourdboat/infrastructure/oidc/OidcProviderStrategy.java`
+- `modules/infrastructure/src/main/java/space/jianmu/gourdboat/infrastructure/oidc/strategy/WechatMiniAppStrategy.java`
+- `modules/infrastructure/src/main/java/space/jianmu/gourdboat/infrastructure/oidc/strategy/WechatMpStrategy.java`
+- `modules/infrastructure/src/main/java/space/jianmu/gourdboat/infrastructure/persistence/oidc/OidcProviderConfigEntity.java`
+- `modules/infrastructure/src/main/java/space/jianmu/gourdboat/infrastructure/persistence/oidc/OidcProviderConfigRepositoryImpl.java`
+- `modules/interfaces/src/main/java/space/jianmu/gourdboat/interfaces/oidc/OidcController.java`
+
+### 3. 规范要求
+- 包声明与物理目录结构必须一一对应，禁止出现 `package ...auth.strategy;` 等与目录不符的声明。
+- 迁移、重构、重命名时，务必同步修正所有 package 声明和 import 路径，确保编译通过。
+- 所有 OIDC 相关代码、文档、注释、接口、测试等引用必须保持一致，遵循单一事实来源（SSOT）原则。 

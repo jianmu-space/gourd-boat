@@ -3,7 +3,7 @@ package space.jianmu.gourdboat.infrastructure.auth;
 import space.jianmu.gourdboat.application.auth.dto.OidcAuthResult;
 import space.jianmu.gourdboat.application.auth.dto.OidcTokenValidationResult;
 import space.jianmu.gourdboat.application.auth.dto.OidcUserInfo;
-import space.jianmu.gourdboat.domain.account.OidcProviderConfig;
+import space.jianmu.gourdboat.domain.oidc.OidcProviderConfig;
 
 /**
  * OIDC服务商策略接口

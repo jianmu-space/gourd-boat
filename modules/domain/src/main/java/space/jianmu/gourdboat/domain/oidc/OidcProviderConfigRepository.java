@@ -1,5 +1,6 @@
-package space.jianmu.gourdboat.domain.account;
+package space.jianmu.gourdboat.domain.oidc;
 
+import space.jianmu.gourdboat.domain.account.AuthProvider;
 import java.util.List;
 import java.util.Optional;
 
