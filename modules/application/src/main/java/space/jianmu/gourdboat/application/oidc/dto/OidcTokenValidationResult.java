@@ -1,4 +1,4 @@
-package space.jianmu.gourdboat.application.auth.dto;
+package space.jianmu.gourdboat.application.oidc.dto;
 
 import lombok.Value;
 import lombok.Builder;
