@@ -16,7 +16,7 @@ import java.util.Set;
 @RestController
 @RequestMapping("/api/providers")
 @RequiredArgsConstructor
-public class ProviderManagementController {
+public class OidcProviderManagementController {
     
     private final DynamicOidcStrategyFactory strategyFactory;
     

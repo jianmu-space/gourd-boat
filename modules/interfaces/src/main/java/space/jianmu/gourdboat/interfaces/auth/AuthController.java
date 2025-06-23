@@ -1,4 +1,4 @@
-package space.jianmu.gourdboat.interfaces.controller;
+package space.jianmu.gourdboat.interfaces.auth;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
