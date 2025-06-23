@@ -10,7 +10,7 @@
 - `AuthProvider`: 认证服务商常量类，支持动态扩展
 - `OidcProviderConfig`: OIDC配置实体，包含服务商的配置信息
 - `OidcProviderConfigRepository`: OIDC配置仓储接口
-- `ProviderRegistry`: 服务商注册表，管理可用的服务商
+- `OidcProviderRegistry`: 服务商注册表，管理可用的服务商
 
 ### 应用服务
 - `OidcService`: OIDC认证服务接口

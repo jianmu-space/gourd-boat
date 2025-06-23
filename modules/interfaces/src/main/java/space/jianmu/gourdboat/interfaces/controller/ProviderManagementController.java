@@ -3,7 +3,7 @@ package space.jianmu.gourdboat.interfaces.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import space.jianmu.gourdboat.domain.account.ProviderRegistry;
+import space.jianmu.gourdboat.domain.account.OidcProviderRegistry;
 import space.jianmu.gourdboat.infrastructure.auth.DynamicOidcStrategyFactory;
 
 import java.util.Map;
@@ -25,13 +25,12 @@ public class ProviderManagementController {
      */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllProviders() {
-        Set<String> providers = ProviderRegistry.getAllProviders();
-        Set<String> groups = ProviderRegistry.getAllGroups();
+        Set<String> providers = OidcProviderRegistry.getAllProviders();
+        Set<String> groups = OidcProviderRegistry.getAllGroups();
         
         return ResponseEntity.ok(Map.of(
             "providers", providers,
-            "groups", groups,
-            "strategyCount", strategyFactory.getStrategyCount()
+            "groups", groups
         ));
     }
     
@@ -40,7 +39,7 @@ public class ProviderManagementController {
      */
     @GetMapping("/group/{group}")
     public ResponseEntity<Set<String>> getProvidersByGroup(@PathVariable String group) {
-        Set<String> providers = ProviderRegistry.getProvidersByGroup(group);
+        Set<String> providers = OidcProviderRegistry.getProvidersByGroup(group);
         return ResponseEntity.ok(providers);
     }
     
@@ -48,8 +47,8 @@ public class ProviderManagementController {
      * 获取服务商详细信息
      */
     @GetMapping("/{providerCode}")
-    public ResponseEntity<ProviderRegistry.ProviderInfo> getProviderInfo(@PathVariable String providerCode) {
-        ProviderRegistry.ProviderInfo info = ProviderRegistry.getProvider(providerCode);
+    public ResponseEntity<OidcProviderRegistry.ProviderInfo> getProviderInfo(@PathVariable String providerCode) {
+        OidcProviderRegistry.ProviderInfo info = OidcProviderRegistry.getProvider(providerCode);
         if (info == null) {
             return ResponseEntity.notFound().build();
         }
@@ -60,9 +59,9 @@ public class ProviderManagementController {
      * 注册新的服务商
      */
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> registerProvider(@RequestBody RegisterProviderRequest request) {
+    public ResponseEntity<Map<String, String>> registerProvider(@RequestBody ProviderRegistrationRequest request) {
         try {
-            ProviderRegistry.registerProvider(
+            OidcProviderRegistry.registerProvider(
                 request.getProviderCode(),
                 request.getProviderName(),
                 request.getDescription(),
@@ -85,7 +84,7 @@ public class ProviderManagementController {
      */
     @GetMapping("/{providerCode}/exists")
     public ResponseEntity<Map<String, Boolean>> checkProviderExists(@PathVariable String providerCode) {
-        boolean exists = ProviderRegistry.hasProvider(providerCode);
+        boolean exists = OidcProviderRegistry.hasProvider(providerCode);
         boolean hasStrategy = strategyFactory.hasStrategy(providerCode);
         
         return ResponseEntity.ok(Map.of(
@@ -114,7 +113,7 @@ public class ProviderManagementController {
     /**
      * 注册服务商请求
      */
-    public static class RegisterProviderRequest {
+    static class ProviderRegistrationRequest {
         private String providerCode;
         private String providerName;
         private String description;

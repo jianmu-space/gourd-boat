@@ -5,10 +5,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.Set;
 
 /**
- * 服务商注册表
+ * OIDC服务商注册表
  * 支持动态注册和管理OIDC服务商
  */
-public class ProviderRegistry {
+public class OidcProviderRegistry {
     
     private static final Map<String, ProviderInfo> providers = new ConcurrentHashMap<>();
     

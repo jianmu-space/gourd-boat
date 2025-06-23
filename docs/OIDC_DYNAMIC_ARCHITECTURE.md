@@ -11,8 +11,9 @@
 #### 1.1 领域层 (Domain Layer)
 - `AuthProvider`: 认证服务商字符串常量，定义支持的服务商类型
 - `OidcConfig`: OIDC配置实体，包含服务商的配置信息
+- `OidcProviderConfig`: OIDC服务商的具体配置实例
+- `OidcProviderRegistry`: 服务商注册表，支持动态注册
 - `OidcConfigRepository`: OIDC配置仓储接口
-- `ProviderRegistry`: 服务商注册表，支持动态注册
 - `OidcErrorCode`: 错误码枚举，定义标准错误码
 - `OidcAuthenticationException`: 认证异常类，统一异常处理
 
@@ -26,7 +27,7 @@
 - `OidcServiceImpl`: OIDC服务实现
 - `OidcProviderStrategy`: 服务商策略接口
 - 具体策略实现：`WechatMiniAppStrategy`, `WechatMpStrategy`等
-- `DynamicOidcStrategyFactory`: 动态策略工厂，基于Spring Bean管理
+- `DynamicOidcStrategyFactory`: 动态策略工厂，根据`provider_code`获取对应的认证策略
 - `EncryptionService`: 加密服务，AES加密敏感信息
 - `EncryptedStringConverter`: JPA加密转换器，自动加密/解密数据库字段
 
