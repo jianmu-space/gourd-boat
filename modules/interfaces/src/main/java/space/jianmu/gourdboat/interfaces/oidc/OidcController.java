@@ -3,10 +3,10 @@ package space.jianmu.gourdboat.interfaces.oidc;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import space.jianmu.gourdboat.application.oidc.OidcService;
-import space.jianmu.gourdboat.application.auth.dto.OidcAuthResult;
-import space.jianmu.gourdboat.application.auth.dto.OidcTokenValidationResult;
-import space.jianmu.gourdboat.application.auth.dto.OidcUserInfo;
+import space.jianmu.gourdboat.application.oidc.dto.OidcAuthResult;
+import space.jianmu.gourdboat.application.oidc.dto.OidcTokenValidationResult;
 
 import java.util.Map;
 
