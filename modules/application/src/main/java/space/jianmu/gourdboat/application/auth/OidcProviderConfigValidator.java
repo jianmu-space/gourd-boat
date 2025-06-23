@@ -12,10 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * OIDC配置验证器
+ * OIDC Provider配置验证器
  */
 @Component
-public class OidcConfigValidator {
+public class OidcProviderConfigValidator {
     
     /**
      * 验证OIDC配置的完整性和有效性
@@ -63,9 +63,9 @@ public class OidcConfigValidator {
      * 验证URL格式
      */
     private void validateUrls(OidcProviderConfig config, List<String> errors) {
-        validateUrl("issuer_url", config.getIssuerUrl(), errors);
-        validateUrl("authorization_endpoint", config.getAuthorizationEndpoint(), errors);
-        validateUrl("token_endpoint", config.getTokenEndpoint(), errors);
+        validateUrl("issuer_url", config.getIssuerUrl(), errors, true);
+        validateUrl("authorization_endpoint", config.getAuthorizationEndpoint(), errors, true);
+        validateUrl("token_endpoint", config.getTokenEndpoint(), errors, true);
         validateUrl("user_info_endpoint", config.getUserInfoEndpoint(), errors, true);
         validateUrl("jwks_uri", config.getJwksUri(), errors, true);
     }

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import space.jianmu.gourdboat.application.auth.OidcConfigValidator;
+import space.jianmu.gourdboat.application.auth.OidcProviderConfigValidator;
 import space.jianmu.gourdboat.application.auth.OidcService;
 import space.jianmu.gourdboat.application.auth.dto.OidcAuthResult;
 import space.jianmu.gourdboat.application.auth.dto.OidcTokenValidationResult;
@@ -28,7 +28,7 @@ public class OidcServiceImpl implements OidcService {
     
     private final OidcProviderConfigRepository oidcProviderConfigRepository;
     private final DynamicOidcStrategyFactory strategyFactory;
-    private final OidcConfigValidator configValidator;
+    private final OidcProviderConfigValidator configValidator;
     
     @Override
     public String generateAuthorizationUrl(String provider, String configId, String state, String redirectUri) {
