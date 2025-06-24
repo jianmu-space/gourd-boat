@@ -1,4 +1,4 @@
-package space.jianmu.gourdboat.infrastructure.auth.config;
+package space.jianmu.gourdboat.infrastructure.oidc;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -6,9 +6,8 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import space.jianmu.gourdboat.domain.account.AuthProvider;
-import space.jianmu.gourdboat.infrastructure.auth.DynamicOidcStrategyFactory;
-import space.jianmu.gourdboat.infrastructure.auth.strategy.WechatMiniAppStrategy;
-import space.jianmu.gourdboat.infrastructure.auth.strategy.WechatMpStrategy;
+import space.jianmu.gourdboat.infrastructure.oidc.strategy.WechatMiniAppStrategy;
+import space.jianmu.gourdboat.infrastructure.oidc.strategy.WechatMpStrategy;
 
 /**
  * OIDC策略自动注册配置

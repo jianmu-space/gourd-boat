@@ -1,4 +1,4 @@
-package space.jianmu.gourdboat.infrastructure.auth.strategy;
+package space.jianmu.gourdboat.infrastructure.oidc.strategy;
 
 import java.util.Map;
 
@@ -6,12 +6,12 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import space.jianmu.gourdboat.application.auth.dto.OidcAuthResult;
-import space.jianmu.gourdboat.application.auth.dto.OidcTokenValidationResult;
-import space.jianmu.gourdboat.application.auth.dto.OidcUserInfo;
+import space.jianmu.gourdboat.application.oidc.dto.OidcAuthResult;
+import space.jianmu.gourdboat.application.oidc.dto.OidcTokenValidationResult;
+import space.jianmu.gourdboat.application.oidc.dto.OidcUserInfo;
 import space.jianmu.gourdboat.domain.account.AuthProvider;
 import space.jianmu.gourdboat.domain.oidc.OidcProviderConfig;
-import space.jianmu.gourdboat.infrastructure.auth.OidcProviderStrategy;
+import space.jianmu.gourdboat.infrastructure.oidc.OidcProviderStrategy;
 
 /**
  * 微信公众号OIDC策略实现

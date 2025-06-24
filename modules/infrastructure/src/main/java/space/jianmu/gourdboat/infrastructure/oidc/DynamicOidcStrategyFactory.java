@@ -1,4 +1,4 @@
-package space.jianmu.gourdboat.infrastructure.auth;
+package space.jianmu.gourdboat.infrastructure.oidc;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

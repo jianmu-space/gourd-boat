@@ -1,4 +1,4 @@
-package space.jianmu.gourdboat.infrastructure.auth;
+package space.jianmu.gourdboat.infrastructure.oidc;
 
 import java.util.Optional;
 
@@ -6,11 +6,11 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import space.jianmu.gourdboat.application.auth.OidcProviderConfigValidator;
-import space.jianmu.gourdboat.application.auth.OidcService;
-import space.jianmu.gourdboat.application.auth.dto.OidcAuthResult;
-import space.jianmu.gourdboat.application.auth.dto.OidcTokenValidationResult;
-import space.jianmu.gourdboat.application.auth.dto.OidcUserInfo;
+import space.jianmu.gourdboat.application.oidc.OidcProviderConfigValidator;
+import space.jianmu.gourdboat.application.oidc.OidcService;
+import space.jianmu.gourdboat.application.oidc.dto.OidcAuthResult;
+import space.jianmu.gourdboat.application.oidc.dto.OidcTokenValidationResult;
+import space.jianmu.gourdboat.application.oidc.dto.OidcUserInfo;
 import space.jianmu.gourdboat.domain.account.AuthProvider;
 import space.jianmu.gourdboat.domain.oidc.OidcErrorCode;
 import space.jianmu.gourdboat.domain.oidc.OidcAuthenticationException;

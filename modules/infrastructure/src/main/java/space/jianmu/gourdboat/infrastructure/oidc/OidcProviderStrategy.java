@@ -1,8 +1,8 @@
-package space.jianmu.gourdboat.infrastructure.auth;
+package space.jianmu.gourdboat.infrastructure.oidc;
 
-import space.jianmu.gourdboat.application.auth.dto.OidcAuthResult;
-import space.jianmu.gourdboat.application.auth.dto.OidcTokenValidationResult;
-import space.jianmu.gourdboat.application.auth.dto.OidcUserInfo;
+import space.jianmu.gourdboat.application.oidc.dto.OidcAuthResult;
+import space.jianmu.gourdboat.application.oidc.dto.OidcTokenValidationResult;
+import space.jianmu.gourdboat.application.oidc.dto.OidcUserInfo;
 import space.jianmu.gourdboat.domain.oidc.OidcProviderConfig;
 
 /**

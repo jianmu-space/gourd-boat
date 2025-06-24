@@ -1,4 +1,4 @@
-package space.jianmu.gourdboat.application.auth;
+package space.jianmu.gourdboat.application.oidc;
 
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
