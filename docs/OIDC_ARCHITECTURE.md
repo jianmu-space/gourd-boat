@@ -221,6 +221,18 @@ app:
     key: ${ENCRYPTION_KEY:default-key-for-dev}
 ```
 
+**密钥生成与管理**:
+- 推荐使用 `./scripts/setup-dev-env.sh` 自动生成 ENCRYPTION_KEY 并写入 .env.local
+- 也可手动设置 ENCRYPTION_KEY 环境变量，长度32字符
+
+**加密工具使用**:
+- 使用 `scripts/GenerateEncryption.java` 工具加密明文：
+  ```bash
+  javac scripts/GenerateEncryption.java
+  java -cp scripts GenerateEncryption "你的明文" "你的ENCRYPTION_KEY"
+  ```
+- 将输出的密文写入数据库
+
 ### 2. 错误处理机制
 
 #### 错误码体系

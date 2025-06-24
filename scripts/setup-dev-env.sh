@@ -12,6 +12,10 @@ mkdir -p scripts
 JWT_SECRET=$(openssl rand -base64 32)
 echo "✅ 生成JWT Secret: $JWT_SECRET"
 
+# 生成新的ENCRYPTION_KEY（32位）
+ENCRYPTION_KEY=$(openssl rand -base64 24 | cut -c1-32)
+echo "✅ 生成ENCRYPTION_KEY: $ENCRYPTION_KEY"
+
 # 创建 .env.local 文件
 cat > .env.local << EOF
 # 开发环境配置文件
@@ -20,6 +24,9 @@ cat > .env.local << EOF
 # JWT 配置
 JWT_SECRET=$JWT_SECRET
 JWT_EXPIRATION=86400000
+
+# 加密密钥
+ENCRYPTION_KEY=$ENCRYPTION_KEY
 
 # 数据库配置 (开发环境使用 PostgreSQL)
 SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:55000/gourdboat_dev

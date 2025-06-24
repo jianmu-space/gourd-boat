@@ -4,6 +4,7 @@
 
 ### 1. 环境变量配置
 - [x] `.env.local` - 开发环境配置（已被git忽略）
+- [x] ENCRYPTION_KEY - OIDC等敏感信息加密密钥（自动生成，32字符）
 - [x] `.env.example` - 配置模板
 - [x] `application-dev.yml` - Spring Boot开发环境配置
 - [x] `application-test.yml` - 测试环境配置
@@ -95,6 +96,9 @@ curl -X POST http://localhost:8080/api/auth/login \
 
 ### 问题：测试数据未加载
 **解决方案**: 检查`data-dev.sql`文件和`defer-datasource-initialization`配置
+
+### 问题：解密失败
+**解决方案**: 检查`ENCRYPTION_KEY`环境变量是否正确设置，且数据库密文与密钥匹配
 
 ## 📁 项目结构
 

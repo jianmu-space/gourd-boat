@@ -26,9 +26,9 @@ public class OidcController {
     @GetMapping("/auth/{provider}")
     public ResponseEntity<Map<String, String>> generateAuthUrl(
             @PathVariable("provider") String provider,
-            @RequestParam String configId,
-            @RequestParam String state,
-            @RequestParam String redirectUri) {
+            @RequestParam("configId") String configId,
+            @RequestParam("state") String state,
+            @RequestParam("redirectUri") String redirectUri) {
         
         String authUrl = oidcService.generateAuthorizationUrl(provider, configId, state, redirectUri);
         return ResponseEntity.ok(Map.of("authUrl", authUrl));
@@ -40,10 +40,10 @@ public class OidcController {
     @GetMapping("/callback/{provider}")
     public ResponseEntity<OidcAuthResult> handleCallback(
             @PathVariable("provider") String provider,
-            @RequestParam String configId,
-            @RequestParam String code,
-            @RequestParam String state,
-            @RequestParam String redirectUri) {
+            @RequestParam("configId") String configId,
+            @RequestParam("code") String code,
+            @RequestParam("state") String state,
+            @RequestParam("redirectUri") String redirectUri) {
         
         OidcAuthResult result = oidcService.handleAuthorizationCode(provider, configId, code, state, redirectUri);
         return ResponseEntity.ok(result);
@@ -55,7 +55,7 @@ public class OidcController {
     @PostMapping("/validate/{provider}")
     public ResponseEntity<Map<String, Object>> validateToken(
             @PathVariable("provider") String provider,
-            @RequestParam String configId,
+            @RequestParam("configId") String configId,
             @RequestBody Map<String, String> request) {
         
         String idToken = request.get("idToken");
@@ -69,7 +69,7 @@ public class OidcController {
     @GetMapping("/userinfo/{provider}")
     public ResponseEntity<Map<String, Object>> getUserInfo(
             @PathVariable("provider") String provider,
-            @RequestParam String configId,
+            @RequestParam("configId") String configId,
             @RequestHeader("Authorization") String authorization) {
         
         String accessToken = authorization.replace("Bearer ", "");

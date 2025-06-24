@@ -12,6 +12,7 @@
 
 这个脚本会：
 - 生成安全的JWT secret
+- 生成安全的ENCRYPTION_KEY
 - 创建 `.env.local` 配置文件
 - 创建 `.env.example` 模板文件
 
@@ -74,6 +75,7 @@ openssl rand -base64 32
 | `SPRING_DATASOURCE_PASSWORD` | 数据库密码 | postgrespw |
 | `SERVER_PORT` | 服务器端口 | 8080 |
 | `SPRING_PROFILES_ACTIVE` | Spring激活的profile | dev |
+| `ENCRYPTION_KEY` | OIDC等敏感信息加密密钥（必须32字符，自动生成） | default-encryption-key-32-chars-long-for-dev |
 
 ## 🔧 开发配置特性
 
@@ -182,4 +184,20 @@ rm .env.local
 
 **注意**：测试环境使用H2内存数据库，与开发环境不同：
 - 测试环境：H2内存数据库（`application-test.yml`）
-- 开发环境：PostgreSQL数据库（`application-dev.yml`） 
+- 开发环境：PostgreSQL数据库（`application-dev.yml`）
+
+## 🔐 加密 OIDC 配置密文
+
+如需加密 OIDC client_secret 等敏感字段，可使用 `scripts/GenerateEncryption.java` 工具：
+
+1. 编译工具：
+   ```bash
+   javac scripts/GenerateEncryption.java
+   ```
+2. 加密明文：
+   ```bash
+   java -cp scripts GenerateEncryption "你的明文" "你的ENCRYPTION_KEY"
+   ```
+3. 将输出的密文写入数据库对应字段。
+
+ENCRYPTION_KEY 可在 .env.local 文件中找到。 

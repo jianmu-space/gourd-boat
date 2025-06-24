@@ -1,4 +1,4 @@
-package space.jianmu.gourdboat.interfaces.exception;
+package space.jianmu.gourdboat.interfaces.oidc;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

@@ -2,6 +2,8 @@ app:
   jwt:
     secret: ${JWT_SECRET:dev-secret-key-for-development-only-32-chars-minimum-length}
     expiration: ${JWT_EXPIRATION:86400000}  # 24小时
+  encryption:
+    key: ${ENCRYPTION_KEY:default-encryption-key-32-chars-long-for-dev}
 
 spring:
   datasource:
