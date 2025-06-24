@@ -38,7 +38,7 @@ public class OidcProviderManagementController {
      * 获取指定分组的所有服务商
      */
     @GetMapping("/group/{group}")
-    public ResponseEntity<Set<String>> getProvidersByGroup(@PathVariable String group) {
+    public ResponseEntity<Set<String>> getProvidersByGroup(@PathVariable("group") String group) {
         Set<String> providers = OidcProviderRegistry.getProvidersByGroup(group);
         return ResponseEntity.ok(providers);
     }
@@ -47,7 +47,7 @@ public class OidcProviderManagementController {
      * 获取服务商详细信息
      */
     @GetMapping("/{providerCode}")
-    public ResponseEntity<OidcProviderRegistry.ProviderInfo> getProviderInfo(@PathVariable String providerCode) {
+    public ResponseEntity<OidcProviderRegistry.ProviderInfo> getProviderInfo(@PathVariable("providerCode") String providerCode) {
         OidcProviderRegistry.ProviderInfo info = OidcProviderRegistry.getProvider(providerCode);
         if (info == null) {
             return ResponseEntity.notFound().build();
@@ -83,7 +83,7 @@ public class OidcProviderManagementController {
      * 检查服务商是否存在
      */
     @GetMapping("/{providerCode}/exists")
-    public ResponseEntity<Map<String, Boolean>> checkProviderExists(@PathVariable String providerCode) {
+    public ResponseEntity<Map<String, Boolean>> checkProviderExists(@PathVariable("providerCode") String providerCode) {
         boolean exists = OidcProviderRegistry.hasProvider(providerCode);
         boolean hasStrategy = strategyFactory.hasStrategy(providerCode);
         

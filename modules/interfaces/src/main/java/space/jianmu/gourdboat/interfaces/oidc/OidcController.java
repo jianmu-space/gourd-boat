@@ -25,7 +25,7 @@ public class OidcController {
      */
     @GetMapping("/auth/{provider}")
     public ResponseEntity<Map<String, String>> generateAuthUrl(
-            @PathVariable String provider,
+            @PathVariable("provider") String provider,
             @RequestParam String configId,
             @RequestParam String state,
             @RequestParam String redirectUri) {
@@ -39,7 +39,7 @@ public class OidcController {
      */
     @GetMapping("/callback/{provider}")
     public ResponseEntity<OidcAuthResult> handleCallback(
-            @PathVariable String provider,
+            @PathVariable("provider") String provider,
             @RequestParam String configId,
             @RequestParam String code,
             @RequestParam String state,
@@ -54,7 +54,7 @@ public class OidcController {
      */
     @PostMapping("/validate/{provider}")
     public ResponseEntity<Map<String, Object>> validateToken(
-            @PathVariable String provider,
+            @PathVariable("provider") String provider,
             @RequestParam String configId,
             @RequestBody Map<String, String> request) {
         
@@ -68,7 +68,7 @@ public class OidcController {
      */
     @GetMapping("/userinfo/{provider}")
     public ResponseEntity<Map<String, Object>> getUserInfo(
-            @PathVariable String provider,
+            @PathVariable("provider") String provider,
             @RequestParam String configId,
             @RequestHeader("Authorization") String authorization) {
         
