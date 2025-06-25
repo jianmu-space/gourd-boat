@@ -26,6 +26,10 @@ public class WechatMpStrategy implements OidcProviderStrategy {
         String clientId = config.getClientId();
         String scope = config.getScope() != null ? config.getScope() : "snsapi_userinfo";
         
+        // URL编码参数
+        String encodedRedirectUri = urlEncode(redirectUri);
+        String encodedState = urlEncode(state);
+        
         return String.format(
             "https://open.weixin.qq.com/connect/oauth2/authorize" +
             "?appid=%s" +
@@ -35,9 +39,9 @@ public class WechatMpStrategy implements OidcProviderStrategy {
             "&state=%s" +
             "#wechat_redirect",
             clientId,
-            redirectUri,
+            encodedRedirectUri,
             scope,
-            state
+            encodedState
         );
     }
     

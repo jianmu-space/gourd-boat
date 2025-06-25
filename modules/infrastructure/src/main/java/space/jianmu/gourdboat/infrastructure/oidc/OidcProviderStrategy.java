@@ -1,5 +1,8 @@
 package space.jianmu.gourdboat.infrastructure.oidc;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 import space.jianmu.gourdboat.application.oidc.dto.OidcAuthResult;
 import space.jianmu.gourdboat.application.oidc.dto.OidcTokenValidationResult;
 import space.jianmu.gourdboat.application.oidc.dto.OidcUserInfo;
@@ -30,4 +33,14 @@ public interface OidcProviderStrategy {
      * 获取用户信息
      */
     OidcUserInfo getUserInfo(OidcProviderConfig config, String accessToken);
+    
+    /**
+     * URL编码工具方法
+     */
+    default String urlEncode(String value) {
+        if (value == null) {
+            return "";
+        }
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
 } 
