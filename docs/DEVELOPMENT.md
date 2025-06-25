@@ -184,7 +184,7 @@ rm .env.local
 
 **注意**：测试环境使用H2内存数据库，与开发环境不同：
 - 测试环境：H2内存数据库（`application-test.yml`）
-- 开发环境：PostgreSQL数据库（`application-dev.yml`）
+- 开发环境：PostgreSQL数据库（`application-dev.yml`） 
 
 ## 🔐 加密 OIDC 配置密文
 
