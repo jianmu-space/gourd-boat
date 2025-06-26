@@ -31,11 +31,11 @@ public class OidcServiceImpl implements OidcService {
     private final OidcProviderConfigValidator configValidator;
     
     @Override
-    public String generateAuthorizationUrl(String provider, String configId, String state, String redirectUri) {
+    public String generateAuthorizationUrl(String provider, String configId, String state) {
         try {
             OidcProviderConfig config = getConfig(AuthProvider.of(provider), configId);
             OidcProviderStrategy strategy = getProviderStrategy(provider);
-            return strategy.generateAuthorizationUrl(config, state, redirectUri);
+            return strategy.generateAuthorizationUrl(config, state);
         } catch (OidcAuthenticationException e) {
             throw e;
         } catch (Exception e) {
@@ -45,11 +45,11 @@ public class OidcServiceImpl implements OidcService {
     }
     
     @Override
-    public OidcAuthResult handleAuthorizationCode(String provider, String configId, String code, String state, String redirectUri) {
+    public OidcAuthResult handleAuthorizationCode(String provider, String configId, String code, String state) {
         try {
             OidcProviderConfig config = getConfig(AuthProvider.of(provider), configId);
             OidcProviderStrategy strategy = getProviderStrategy(provider);
-            return strategy.handleAuthorizationCode(config, code, state, redirectUri);
+            return strategy.handleAuthorizationCode(config, code, state);
         } catch (OidcAuthenticationException e) {
             throw e;
         } catch (Exception e) {

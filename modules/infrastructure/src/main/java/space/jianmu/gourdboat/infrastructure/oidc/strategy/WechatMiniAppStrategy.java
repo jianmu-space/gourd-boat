@@ -20,13 +20,13 @@ import space.jianmu.gourdboat.infrastructure.oidc.OidcProviderStrategy;
 public class WechatMiniAppStrategy implements OidcProviderStrategy {
     
     @Override
-    public String generateAuthorizationUrl(OidcProviderConfig config, String state, String redirectUri) {
+    public String generateAuthorizationUrl(OidcProviderConfig config, String state) {
         // 微信小程序使用code2Session，不需要授权URL
         throw new UnsupportedOperationException("微信小程序不支持授权URL，请使用code2Session");
     }
     
     @Override
-    public OidcAuthResult handleAuthorizationCode(OidcProviderConfig config, String code, String state, String redirectUri) {
+    public OidcAuthResult handleAuthorizationCode(OidcProviderConfig config, String code, String state) {
         try {
             // 调用微信code2Session接口
             WechatCode2SessionResponse response = callCode2Session(config, code);

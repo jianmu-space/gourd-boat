@@ -20,6 +20,7 @@ public class OidcProviderConfigEntityMapper {
             .userInfoEndpoint(entity.getUserInfoEndpoint())
             .jwksUri(entity.getJwksUri())
             .scope(entity.getScope())
+            .redirectUri(entity.getRedirectUri())
             .enabled(entity.getEnabled())
             .description(entity.getDescription())
             .createdAt(entity.getCreatedAt())
@@ -40,6 +41,7 @@ public class OidcProviderConfigEntityMapper {
         entity.setUserInfoEndpoint(config.getUserInfoEndpoint());
         entity.setJwksUri(config.getJwksUri());
         entity.setScope(config.getScope());
+        entity.setRedirectUri(config.getRedirectUri());
         entity.setEnabled(config.getEnabled());
         entity.setDescription(config.getDescription());
         entity.setCreatedAt(config.getCreatedAt());

@@ -22,6 +22,7 @@ public class OidcProviderConfig {
     String userInfoEndpoint;            // 用户信息端点
     String jwksUri;                     // JWKS URI
     String scope;                       // 授权范围
+    String redirectUri;                 // 回调地址
     Boolean enabled;                    // 是否启用
     String description;                 // 配置描述
     LocalDateTime createdAt;            // 创建时间

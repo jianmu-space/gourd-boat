@@ -27,10 +27,9 @@ public class OidcController {
     public ResponseEntity<Map<String, String>> generateAuthUrl(
             @PathVariable("provider") String provider,
             @RequestParam("configId") String configId,
-            @RequestParam("state") String state,
-            @RequestParam("redirectUri") String redirectUri) {
+            @RequestParam("state") String state) {
         
-        String authUrl = oidcService.generateAuthorizationUrl(provider, configId, state, redirectUri);
+        String authUrl = oidcService.generateAuthorizationUrl(provider, configId, state);
         return ResponseEntity.ok(Map.of("authUrl", authUrl));
     }
     
@@ -42,10 +41,9 @@ public class OidcController {
             @PathVariable("provider") String provider,
             @RequestParam("configId") String configId,
             @RequestParam("code") String code,
-            @RequestParam("state") String state,
-            @RequestParam("redirectUri") String redirectUri) {
+            @RequestParam("state") String state) {
         
-        OidcAuthResult result = oidcService.handleAuthorizationCode(provider, configId, code, state, redirectUri);
+        OidcAuthResult result = oidcService.handleAuthorizationCode(provider, configId, code, state);
         return ResponseEntity.ok(result);
     }
     

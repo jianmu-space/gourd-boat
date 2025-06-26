@@ -15,10 +15,9 @@ public interface OidcService {
      * @param provider 认证服务商
      * @param configId 配置ID（用于区分同一服务商的多个实例）
      * @param state 状态参数
-     * @param redirectUri 回调地址
      * @return 授权URL
      */
-    String generateAuthorizationUrl(String provider, String configId, String state, String redirectUri);
+    String generateAuthorizationUrl(String provider, String configId, String state);
     
     /**
      * 处理授权码回调
@@ -26,10 +25,9 @@ public interface OidcService {
      * @param configId 配置ID
      * @param code 授权码
      * @param state 状态参数
-     * @param redirectUri 回调地址
      * @return OIDC认证结果
      */
-    OidcAuthResult handleAuthorizationCode(String provider, String configId, String code, String state, String redirectUri);
+    OidcAuthResult handleAuthorizationCode(String provider, String configId, String code, String state);
     
     /**
      * 验证ID Token

@@ -22,9 +22,17 @@ import space.jianmu.gourdboat.infrastructure.oidc.OidcProviderStrategy;
 public class WechatMpStrategy implements OidcProviderStrategy {
     
     @Override
-    public String generateAuthorizationUrl(OidcProviderConfig config, String state, String redirectUri) {
+    public String generateAuthorizationUrl(OidcProviderConfig config, String state) {
         String clientId = config.getClientId();
         String scope = config.getScope() != null ? config.getScope() : "snsapi_userinfo";
+        String baseRedirectUri = config.getRedirectUri();
+        
+        if (baseRedirectUri == null || baseRedirectUri.trim().isEmpty()) {
+            throw new IllegalArgumentException("配置中缺少redirectUri");
+        }
+        
+        // 在回调地址中拼接config_id参数
+        String redirectUri = appendUrlParam(baseRedirectUri, "configId", config.getConfigId());
         
         // URL编码参数
         String encodedRedirectUri = urlEncode(redirectUri);
@@ -46,7 +54,7 @@ public class WechatMpStrategy implements OidcProviderStrategy {
     }
     
     @Override
-    public OidcAuthResult handleAuthorizationCode(OidcProviderConfig config, String code, String state, String redirectUri) {
+    public OidcAuthResult handleAuthorizationCode(OidcProviderConfig config, String code, String state) {
         // 1. 获取access_token
         WechatAccessTokenResponse tokenResponse = getAccessToken(config, code);
         

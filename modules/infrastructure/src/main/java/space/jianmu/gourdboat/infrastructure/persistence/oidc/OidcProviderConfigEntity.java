@@ -47,6 +47,9 @@ public class OidcProviderConfigEntity {
     @Column(name = "scope")
     private String scope;
 
+    @Column(name = "redirect_uri")
+    private String redirectUri;
+
     @Column(name = "enabled", nullable = false)
     private Boolean enabled;
 
@@ -146,6 +149,14 @@ public class OidcProviderConfigEntity {
 
     public void setScope(String scope) {
         this.scope = scope;
+    }
+
+    public String getRedirectUri() {
+        return redirectUri;
+    }
+
+    public void setRedirectUri(String redirectUri) {
+        this.redirectUri = redirectUri;
     }
 
     public Boolean getEnabled() {

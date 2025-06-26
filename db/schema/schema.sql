@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS boat_oidc_provider_config (
     user_info_endpoint VARCHAR(500) COMMENT '用户信息端点',
     jwks_uri VARCHAR(500) COMMENT 'JWKS URI',
     scope VARCHAR(200) COMMENT '授权范围',
+    redirect_uri VARCHAR(500),
     enabled BOOLEAN NOT NULL DEFAULT true COMMENT '是否启用',
     description VARCHAR(500) COMMENT '配置描述（支持500字符）',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -45,3 +46,6 @@ CREATE TABLE IF NOT EXISTS boat_oidc_provider_config (
     INDEX idx_oidc_provider_config_provider_enabled (provider_code, enabled)
     -- 注意：使用逻辑外键，无物理外键约束
 ) COMMENT='OIDC服务商配置表，支持动态服务商配置，使用逻辑外键保证数据一致性';
+
+-- 创建索引
+CREATE INDEX IF NOT EXISTS idx_oidc_provider_config_provider_enabled ON boat_oidc_provider_config(provider_code, enabled);

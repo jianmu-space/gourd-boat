@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS boat_oidc_provider_config (
     user_info_endpoint VARCHAR(500),
     jwks_uri VARCHAR(500),
     scope VARCHAR(200),
+    redirect_uri VARCHAR(500),
     enabled BOOLEAN NOT NULL DEFAULT true,
     description VARCHAR(500),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -84,6 +85,7 @@ COMMENT ON COLUMN boat_oidc_provider_config.token_endpoint IS '令牌端点';
 COMMENT ON COLUMN boat_oidc_provider_config.user_info_endpoint IS '用户信息端点';
 COMMENT ON COLUMN boat_oidc_provider_config.jwks_uri IS 'JWKS URI';
 COMMENT ON COLUMN boat_oidc_provider_config.scope IS '授权范围';
+COMMENT ON COLUMN boat_oidc_provider_config.redirect_uri IS '回调地址';
 COMMENT ON COLUMN boat_oidc_provider_config.enabled IS '是否启用';
 COMMENT ON COLUMN boat_oidc_provider_config.description IS '配置描述（支持500字符）';
 COMMENT ON COLUMN boat_oidc_provider_config.created_at IS '创建时间';
@@ -116,18 +118,20 @@ INSERT INTO boat_oidc_provider_config (
     provider_name, 
     client_id, 
     client_secret, 
+    redirect_uri,
     enabled, 
     description,
     created_at,
     updated_at
 ) VALUES 
-('wechat_miniapp_001', 'WECHAT_MINIAPP', '微信小程序1', 'wx1234567890abcdef', 'secret1234567890abcdef', true, '主要微信小程序', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('wechat_mp_001', 'WECHAT_MP', '微信公众号1', 'wx1234567890abcdef', 'secret1234567890abcdef', true, '主要微信公众号', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+('wechat_miniapp_001', 'WECHAT_MINIAPP', '微信小程序1', 'wx1234567890abcdef', 'secret1234567890abcdef', 'https://example.com/api/oidc/callback/wechat_miniapp', true, '主要微信小程序', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('wechat_mp_001', 'WECHAT_MP', '微信公众号1', 'wx1234567890abcdef', 'secret1234567890abcdef', 'https://example.com/api/oidc/callback/wechat_mp', true, '主要微信公众号', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (config_id) DO UPDATE SET
     provider_code = EXCLUDED.provider_code,
     provider_name = EXCLUDED.provider_name,
     client_id = EXCLUDED.client_id,
     client_secret = EXCLUDED.client_secret,
+    redirect_uri = EXCLUDED.redirect_uri,
     enabled = EXCLUDED.enabled,
     description = EXCLUDED.description,
     updated_at = CURRENT_TIMESTAMP; 
