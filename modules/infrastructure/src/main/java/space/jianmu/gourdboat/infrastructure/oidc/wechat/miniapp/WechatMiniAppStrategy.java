@@ -1,4 +1,4 @@
-package space.jianmu.gourdboat.infrastructure.oidc.strategy;
+package space.jianmu.gourdboat.infrastructure.oidc.wechat.miniapp;
 
 import org.springframework.stereotype.Component;
 
@@ -74,11 +74,8 @@ public class WechatMiniAppStrategy implements OidcProviderStrategy {
     
     @Override
     public OidcUserInfo getUserInfo(OidcProviderConfig config, String accessToken) {
-        // 微信小程序通过session_key获取用户信息
-        // 这里需要根据具体业务逻辑实现
-        return OidcUserInfo.builder()
-            .provider(AuthProvider.WECHAT_MINIAPP)
-            .build();
+        // TODO: 需根据accessToken查找openId，或由上游传递/存储
+        return null;
     }
     
     private WechatCode2SessionResponse callCode2Session(OidcProviderConfig config, String code) {

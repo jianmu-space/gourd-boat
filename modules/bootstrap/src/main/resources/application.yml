@@ -20,3 +20,20 @@ spring:
     console:
       enabled: true
       path: /h2-console 
+
+logging:
+  level:
+    root: INFO
+    space.jianmu.gourdboat: DEBUG
+    org.springframework: WARN
+    org.hibernate: WARN
+  file:
+    name: logs/gourdboat.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB
+      max-history: 30
+      total-size-cap: 2GB 

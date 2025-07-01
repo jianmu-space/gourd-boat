@@ -11,6 +11,7 @@ dependencies {
     implementation libs.spring.boot.dataJpa
     implementation libs.spring.boot.security
     implementation libs.spring.boot.validation
+    implementation "org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}"
     
     // 数据库
     runtimeOnly libs.database.h2
@@ -25,4 +26,9 @@ dependencies {
     
     // 测试依赖
     testImplementation libs.spring.security.test
+    
+    // Lombok and Jackson annotations
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.13.4'
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 } 
