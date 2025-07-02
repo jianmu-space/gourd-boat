@@ -1,14 +1,18 @@
 package space.jianmu.gourdboat.infrastructure.oidc.wechat.mp;
 
-import org.springframework.http.MediaType;
+import java.util.function.Function;
+
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.Data;
-import space.jianmu.gourdboat.domain.oidc.OidcProviderConfig;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
+import space.jianmu.gourdboat.domain.oidc.OidcProviderConfig;
 
 /**
  * 微信公众号API Client
@@ -17,6 +21,30 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class WechatMpApiClient {
     private final WebClient webClient = WebClient.create();
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    /**
+     * 处理微信API HTTP状态码错误
+     */
+    private Function<ClientResponse, Mono<? extends Throwable>> handleWechatApiStatusError(String apiName) {
+        return response -> response.bodyToMono(String.class)
+            .flatMap(body -> {
+                log.error("微信{} API HTTP错误, status={}, body={}", apiName, response.statusCode(), body);
+                return Mono.error(new RuntimeException("微信" + apiName + " API调用失败: " + response.statusCode()));
+            });
+    }
+
+    /**
+     * 解析JSON响应字符串为对象
+     */
+    private <T> T parseJsonResponse(String jsonString, Class<T> clazz) {
+        try {
+            return objectMapper.readValue(jsonString, clazz);
+        } catch (Exception e) {
+            log.error("JSON解析失败: {}", jsonString, e);
+            throw new RuntimeException("JSON解析失败: " + e.getMessage());
+        }
+    }
 
     /**
      * 通过网页授权code换取access_token（OAuth2.0流程，sns接口）
@@ -31,12 +59,19 @@ public class WechatMpApiClient {
                     + "&secret=" + config.getClientSecret()
                     + "&code=" + code
                     + "&grant_type=authorization_code";
-            WechatAccessTokenResponse resp = webClient.get()
+            
+            // 先获取字符串响应，然后手动解析JSON
+            String rawResponse = webClient.get()
                     .uri(url)
-                    .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
-                    .bodyToMono(WechatAccessTokenResponse.class)
+                    .onStatus(status -> status.isError(), handleWechatApiStatusError("sns access_token"))
+                    .bodyToMono(String.class)
                     .block();
+            
+            log.debug("微信API原始响应: {}", rawResponse);
+            
+            // 手动解析JSON
+            WechatAccessTokenResponse resp = parseJsonResponse(rawResponse, WechatAccessTokenResponse.class);
             log.debug("微信sns access_token返回: {}", resp);
             return resp;
         } catch (Exception e) {
@@ -53,11 +88,19 @@ public class WechatMpApiClient {
         log.info("请求微信用户信息, accessToken={}, openId={}", accessToken != null ? accessToken.substring(0, 8) + "..." : null, openId);
         try {
             String url = "https://api.weixin.qq.com/sns/userinfo?access_token=" + accessToken + "&openid=" + openId + "&lang=zh_CN";
-            WechatUserInfoResponse resp = webClient.get()
+            
+            // 先获取字符串响应，然后手动解析JSON
+            String rawResponse = webClient.get()
                     .uri(url)
                     .retrieve()
-                    .bodyToMono(WechatUserInfoResponse.class)
+                    .onStatus(status -> status.isError(), handleWechatApiStatusError("用户信息"))
+                    .bodyToMono(String.class)
                     .block();
+            
+            log.debug("微信用户信息原始响应: {}", rawResponse);
+            
+            // 手动解析JSON
+            WechatUserInfoResponse resp = parseJsonResponse(rawResponse, WechatUserInfoResponse.class);
             log.debug("微信用户信息返回: {}", resp);
             return resp;
         } catch (Exception e) {
