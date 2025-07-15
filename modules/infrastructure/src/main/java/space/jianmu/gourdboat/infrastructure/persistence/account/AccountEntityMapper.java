@@ -11,7 +11,7 @@ public class AccountEntityMapper {
     public static Account toDomain(AccountEntity entity) {
         return Account.reconstruct()
                 .id(AccountId.of(entity.getId()))
-                .userId(UserId.of(entity.getUserId()))
+                .userId(entity.getUserId() != null ? UserId.of(entity.getUserId()) : null)
                 .type(AccountType.valueOf(entity.getType()))
                 .provider(AuthProvider.of(entity.getProvider()))
                 .identifier(entity.getIdentifier())
@@ -20,5 +20,19 @@ public class AccountEntityMapper {
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
+    }
+    
+    public static AccountEntity toEntity(Account account) {
+        AccountEntity entity = new AccountEntity();
+        entity.setId(account.getId().getValue());
+        entity.setUserId(account.getUserId() != null ? account.getUserId().getValue() : null);
+        entity.setType(account.getType().name());
+        entity.setProvider(account.getProvider().getValue());
+        entity.setIdentifier(account.getIdentifier());
+        entity.setPassword(account.getPassword());
+        entity.setStatus(account.getStatus().name());
+        entity.setCreatedAt(account.getCreatedAt());
+        entity.setUpdatedAt(account.getUpdatedAt());
+        return entity;
     }
 }

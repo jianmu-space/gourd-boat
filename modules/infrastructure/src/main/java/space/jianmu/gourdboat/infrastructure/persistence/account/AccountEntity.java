@@ -11,7 +11,7 @@ public class AccountEntity {
     @Id
     private String id;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id", nullable = true)
     private String userId;
 
     @Column(nullable = false)

@@ -1,7 +1,7 @@
 -- 账号表：存储所有用户的认证账号信息（支持多种认证方式）
 CREATE TABLE IF NOT EXISTS boat_account (
     id           VARCHAR(36)  PRIMARY KEY,
-    user_id      VARCHAR(36)  NOT NULL,
+    user_id      VARCHAR(36)  NULL,
     type         VARCHAR(20)  NOT NULL,
     provider     VARCHAR(20)  NOT NULL,
     identifier   VARCHAR(100) NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS boat_account (
 -- 为PostgreSQL表添加注释
 COMMENT ON TABLE boat_account IS '账号表，支持内部和外部多种认证方式，每个账号唯一标识一个登录方式';
 COMMENT ON COLUMN boat_account.id IS '账号ID，UUID';
-COMMENT ON COLUMN boat_account.user_id IS '关联的用户ID，UUID（逻辑外键）';
+COMMENT ON COLUMN boat_account.user_id IS '关联的用户ID，UUID（逻辑外键，OIDC账号PENDING_BIND状态时可为null）';
 COMMENT ON COLUMN boat_account.type IS '账号类型（INTERNAL-内部账号，EXTERNAL-外部账号）';
 COMMENT ON COLUMN boat_account.provider IS '认证服务商（如PASSWORD、GOOGLE、GITHUB、WECHAT等）';
 COMMENT ON COLUMN boat_account.identifier IS '账号标识（如邮箱、手机号、第三方ID等，唯一）';
@@ -124,8 +124,8 @@ INSERT INTO boat_oidc_provider_config (
     created_at,
     updated_at
 ) VALUES 
-('wechat_miniapp_001', 'WECHAT_MINIAPP', '微信小程序1', 'wx1234567890abcdef', 'secret1234567890abcdef', 'https://example.com/api/oidc/callback/wechat_miniapp', true, '主要微信小程序', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('wechat_mp_001', 'WECHAT_MP', '微信公众号1', 'wx1234567890abcdef', 'secret1234567890abcdef', 'https://example.com/api/oidc/callback/wechat_mp', true, '主要微信公众号', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+('wechat_miniapp_001', 'WECHAT_MINIAPP', '微信小程序1', 'wx1234567890abcdef', 'secret1234567890abcdef', 'https://example.com/api/auth/oidc/callback/wechat_miniapp', true, '主要微信小程序', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('wechat_mp_001', 'WECHAT_MP', '微信公众号1', 'wx1234567890abcdef', 'secret1234567890abcdef', 'https://example.com/api/auth/oidc/callback/wechat_mp', true, '主要微信公众号', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (config_id) DO UPDATE SET
     provider_code = EXCLUDED.provider_code,
     provider_name = EXCLUDED.provider_name,

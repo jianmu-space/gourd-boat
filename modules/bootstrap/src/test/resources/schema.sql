@@ -1,7 +1,7 @@
 -- H2数据库兼容的账号表结构 (测试专用)
 CREATE TABLE boat_account (
     id           VARCHAR(36)  PRIMARY KEY,
-    user_id      VARCHAR(36)  NOT NULL,
+    user_id      VARCHAR(36)  NULL,
     type         VARCHAR(20)  NOT NULL,
     provider     VARCHAR(20)  NOT NULL,
     identifier   VARCHAR(100) NOT NULL UNIQUE,

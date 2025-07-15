@@ -7,7 +7,7 @@ function logDebug(msg) {
 const provider = 'WECHAT_MP';
 const configId = 'wechat_mp_iceee';
 const state = '117788';
-const redirectUri = encodeURIComponent('http://110280mczq018.vicp.fun/api/oidc/callback/WECHAT_MP?configId=wechat_mp_iceee');
+const redirectUri = encodeURIComponent('http://110280mczq018.vicp.fun/api/auth/oidc/callback/WECHAT_MP?configId=wechat_mp_iceee');
 
 function getQueryParam(name) {
   const url = new URL(window.location.href);
@@ -21,10 +21,10 @@ window.onload = function() {
   logDebug('code: ' + code + ', state: ' + stateParam);
   if (code && stateParam) {
     document.getElementById('result').innerHTML = '正在获取用户信息...';
-    logDebug('检测到 code 和 state，开始请求后端 /api/oidc/callback');
-    fetch(`/api/oidc/callback/WECHAT_MP?configId=${configId}&code=${code}&state=${state}&redirectUri=${redirectUri}`)
+    logDebug('检测到 code 和 state，开始请求后端 /api/auth/oidc/callback');
+    fetch(`/api/auth/oidc/callback/WECHAT_MP?configId=${configId}&code=${code}&state=${state}&redirectUri=${redirectUri}`)
       .then(res => {
-        logDebug('收到 /api/oidc/callback 响应');
+        logDebug('收到 /api/auth/oidc/callback 响应');
         return res.json();
       })
       .then(data => {
@@ -40,10 +40,10 @@ window.onload = function() {
 
 document.getElementById('loginBtn').onclick = function() {
   document.getElementById('result').innerHTML = '正在获取微信授权地址...';
-  logDebug('点击登录按钮，开始请求 /api/oidc/auth');
-  fetch(`/api/oidc/auth/WECHAT_MP?configId=${configId}&state=${state}&redirectUri=${redirectUri}`)
+  logDebug('点击登录按钮，开始请求 /api/auth/oidc/auth');
+  fetch(`/api/auth/oidc/auth/WECHAT_MP?configId=${configId}&state=${state}&redirectUri=${redirectUri}`)
     .then(res => {
-      logDebug('收到 /api/oidc/auth 响应');
+      logDebug('收到 /api/auth/oidc/auth 响应');
       return res.json();
     })
     .then(data => {

@@ -1,7 +1,7 @@
 -- 账号表：存储所有用户的认证账号信息（支持多种认证方式）
 CREATE TABLE IF NOT EXISTS boat_account (
     id           VARCHAR(36)  PRIMARY KEY COMMENT '账号ID，UUID',
-    user_id      VARCHAR(36)  NOT NULL COMMENT '关联的用户ID，UUID（逻辑外键）',
+    user_id      VARCHAR(36)  NULL COMMENT '关联的用户ID，UUID（逻辑外键，OIDC账号PENDING_BIND状态时可为null）',
     type         VARCHAR(20)  NOT NULL COMMENT '账号类型（INTERNAL-内部账号，EXTERNAL-外部账号）',
     provider     VARCHAR(20)  NOT NULL COMMENT '认证服务商（如PASSWORD、GOOGLE、GITHUB、WECHAT等）',
     identifier   VARCHAR(100) NOT NULL UNIQUE COMMENT '账号标识（如邮箱、手机号、第三方ID等，唯一）',
