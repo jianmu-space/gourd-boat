@@ -39,7 +39,7 @@ public class UnifiedJwtServiceImpl implements UnifiedJwtService {
                 account.getProvider().getValue(),                  // provider
                 account.getType().name(),                          // accountType
                 account.isPendingBind() ? "PENDING_BIND" : "ACTIVE", // userStatus
-                account.isBound() ? account.getUserId().getValue() : null // userId
+                account.getUserId() != null ? account.getUserId().getValue() : null // userId - 始终传递，可能为null
             );
             
             // 确定用户角色
@@ -52,8 +52,9 @@ public class UnifiedJwtServiceImpl implements UnifiedJwtService {
                 role
             );
             
-            log.info("统一JWT生成成功: identifier={}, role={}", 
-                    account.getIdentifier(), role);
+            log.info("统一JWT生成成功: identifier={}, role={}, userId={}", 
+                    account.getIdentifier(), role, 
+                    account.getUserId() != null ? account.getUserId().getValue() : null);
             return result;
             
         } catch (Exception e) {

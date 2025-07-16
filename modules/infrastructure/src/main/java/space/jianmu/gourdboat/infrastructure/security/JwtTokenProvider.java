@@ -64,9 +64,8 @@ public class JwtTokenProvider {
         claims.put("accountType", accountType);
         claims.put("userStatus", userStatus);
         
-        if (userId != null) {
-            claims.put("userId", userId);
-        }
+        // 始终包含userId字段，即使值为null，确保JWT结构一致性
+        claims.put("userId", userId);
         
         return generateTokenWithClaims(identifier, claims, jwtExpirationInMs);
     }
