@@ -17,6 +17,8 @@ public class AccountEntityMapper {
                 .identifier(entity.getIdentifier())
                 .password(entity.getPassword())
                 .status(AccountStatus.valueOf(entity.getStatus()))
+                .configId(entity.getConfigId())
+                .unionId(entity.getUnionId())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -31,6 +33,8 @@ public class AccountEntityMapper {
         entity.setIdentifier(account.getIdentifier());
         entity.setPassword(account.getPassword());
         entity.setStatus(account.getStatus().name());
+        entity.setConfigId(account.getConfigId());
+        entity.setUnionId(account.getUnionId());
         entity.setCreatedAt(account.getCreatedAt());
         entity.setUpdatedAt(account.getUpdatedAt());
         return entity;

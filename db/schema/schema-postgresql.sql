@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS boat_account (
     identifier   VARCHAR(100) NOT NULL,
     password     VARCHAR(255) NULL,
     status       VARCHAR(20)  NOT NULL,
+    config_id    VARCHAR(100) NULL,
+    union_id     VARCHAR(100) NULL,
     created_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -18,15 +20,18 @@ COMMENT ON COLUMN boat_account.id IS '账号ID，UUID';
 COMMENT ON COLUMN boat_account.user_id IS '关联的用户ID，UUID（逻辑外键，OIDC账号PENDING_BIND状态时可为null）';
 COMMENT ON COLUMN boat_account.type IS '账号类型（INTERNAL-内部账号，EXTERNAL-外部账号）';
 COMMENT ON COLUMN boat_account.provider IS '认证服务商（如PASSWORD、GOOGLE、GITHUB、WECHAT等）';
-COMMENT ON COLUMN boat_account.identifier IS '账号标识（如邮箱、手机号、第三方ID等，唯一）';
+COMMENT ON COLUMN boat_account.identifier IS '账号标识（如邮箱、手机号、openId等，配合provider+config_id确保唯一性）';
 COMMENT ON COLUMN boat_account.password IS '账号密码（BCrypt等加密存储，仅内部账号使用）';
 COMMENT ON COLUMN boat_account.status IS '账号状态（如ACTIVE、INACTIVE、LOCKED等）';
+COMMENT ON COLUMN boat_account.config_id IS 'OIDC配置ID（用于区分同一provider的不同配置实例，PASSWORD认证时为null）';
+COMMENT ON COLUMN boat_account.union_id IS 'UnionId（微信等平台的联合用户标识，用于跨应用识别同一用户）';
 COMMENT ON COLUMN boat_account.created_at IS '创建时间';
 COMMENT ON COLUMN boat_account.updated_at IS '更新时间'; 
 
 -- 创建索引
 CREATE INDEX IF NOT EXISTS idx_boat_account_user_id ON boat_account(user_id);
-CREATE INDEX IF NOT EXISTS idx_boat_account_provider_identifier ON boat_account(provider, identifier);
+-- 统一索引：支持所有认证查询并保证唯一性（使用NULLS NOT DISTINCT）
+CREATE UNIQUE INDEX IF NOT EXISTS idx_boat_account_provider_identifier_config ON boat_account(provider, identifier, config_id) NULLS NOT DISTINCT;
 
 -- OIDC服务商注册表（支持动态注册）
 CREATE TABLE IF NOT EXISTS boat_oidc_provider_registry (

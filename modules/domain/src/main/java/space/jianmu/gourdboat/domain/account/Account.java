@@ -21,16 +21,18 @@ public class Account {
     UserId userId;               // 关联的用户ID（OIDC待绑定状态时可能为null）
     AccountType type;            // 账号类型(内部/外部)
     AuthProvider provider;       // 认证服务商
-    String identifier;           // 账号标识(如Google subject、GitHub ID等)
+    String identifier;           // 账号标识(如Google subject、GitHub ID、openId等)
     String password;           // 账号密码（加密存储，仅内部账号使用）
     AccountStatus status;        // 账号状态
+    String configId;             // OIDC配置ID（用于区分同一provider的不同配置实例）
+    String unionId;              // UnionId（微信等平台的联合用户标识）
     LocalDateTime createdAt;     // 创建时间
     LocalDateTime updatedAt;     // 更新时间
     
     @Builder(builderMethodName = "reconstruct")
     private Account(AccountId id, UserId userId, AccountType type,
                    AuthProvider provider, String identifier, String password, AccountStatus status,
-                   LocalDateTime createdAt, LocalDateTime updatedAt) {
+                   String configId, String unionId, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.userId = userId;
         this.type = type;
@@ -38,6 +40,8 @@ public class Account {
         this.identifier = identifier;
         this.password = password;
         this.status = status;
+        this.configId = configId;
+        this.unionId = unionId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -55,6 +59,8 @@ public class Account {
             identifier,
             password,
             newStatus,
+            configId,
+            unionId,
             createdAt,
             LocalDateTime.now()
         );
@@ -80,6 +86,8 @@ public class Account {
             identifier,
             password,
             AccountStatus.ACTIVE,
+            configId,
+            unionId,
             createdAt,
             LocalDateTime.now()
         );

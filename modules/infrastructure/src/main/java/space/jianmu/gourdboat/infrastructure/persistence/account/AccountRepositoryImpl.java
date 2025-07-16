@@ -23,6 +23,12 @@ public class AccountRepositoryImpl implements AccountRepository {
     }
     
     @Override
+    public Optional<Account> findByProviderAndConfigIdAndIdentifier(AuthProvider provider, String configId, String identifier) {
+        return jpaRepository.findByProviderAndConfigIdAndIdentifier(provider.getValue(), configId, identifier)
+                .map(AccountEntityMapper::toDomain);
+    }
+    
+    @Override
     public Optional<Account> findById(AccountId accountId) {
         return jpaRepository.findById(accountId.getValue())
                 .map(AccountEntityMapper::toDomain);

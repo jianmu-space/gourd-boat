@@ -4,13 +4,15 @@ CREATE TABLE IF NOT EXISTS boat_account (
     user_id      VARCHAR(36)  NULL COMMENT '关联的用户ID，UUID（逻辑外键，OIDC账号PENDING_BIND状态时可为null）',
     type         VARCHAR(20)  NOT NULL COMMENT '账号类型（INTERNAL-内部账号，EXTERNAL-外部账号）',
     provider     VARCHAR(20)  NOT NULL COMMENT '认证服务商（如PASSWORD、GOOGLE、GITHUB、WECHAT等）',
-    identifier   VARCHAR(100) NOT NULL UNIQUE COMMENT '账号标识（如邮箱、手机号、第三方ID等，唯一）',
+    identifier   VARCHAR(100) NOT NULL COMMENT '账号标识（如邮箱、手机号、openId等，配合provider+config_id确保唯一性）',
     password     VARCHAR(255) NULL COMMENT '账号密码（BCrypt等加密存储，仅内部账号使用）',
     status       VARCHAR(20)  NOT NULL COMMENT '账号状态（如ACTIVE、INACTIVE、LOCKED等）',
+    config_id    VARCHAR(100) NULL COMMENT 'OIDC配置ID（用于区分同一provider的不同配置实例，PASSWORD认证时为null）',
+    union_id     VARCHAR(100) NULL COMMENT 'UnionId（微信等平台的联合用户标识，用于跨应用识别同一用户）',
     created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     INDEX idx_boat_account_user_id (user_id),
-    INDEX idx_boat_account_provider_identifier (provider, identifier)
+    UNIQUE INDEX idx_boat_account_provider_identifier_config (provider, identifier, config_id) NULLS NOT DISTINCT
 ) COMMENT='账号表，支持内部和外部多种认证方式，每个账号唯一标识一个登录方式';
 
 -- OIDC服务商注册表（支持动态注册）

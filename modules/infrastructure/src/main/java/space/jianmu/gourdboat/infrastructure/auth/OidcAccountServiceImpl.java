@@ -23,35 +23,40 @@ public class OidcAccountServiceImpl implements OidcAccountService {
     private final AccountRepository accountRepository;
     
     @Override
-    public Account findOrCreateAccount(OidcAuthResult oidcResult) {
-        log.info("查找或创建OIDC账号: provider={}, openId={}", oidcResult.getProvider(), oidcResult.getOpenId());
+    public Account findOrCreateAccount(OidcAuthResult oidcResult, String configId) {
+        log.info("查找或创建OIDC账号: provider={}, openId={}, configId={}", 
+                oidcResult.getProvider(), oidcResult.getOpenId(), configId);
         
         try {
             // 1. 构建认证提供商
             AuthProvider provider = AuthProvider.of(oidcResult.getProvider().toUpperCase());
             
-            // 2. 使用openId作为identifier查找现有账号
+            // 2. 使用configId和openId作为identifier查找现有账号
             String identifier = oidcResult.getOpenId();
-            Optional<Account> existingAccount = accountRepository.findByProviderAndIdentifier(provider, identifier);
+            Optional<Account> existingAccount = accountRepository.findByProviderAndConfigIdAndIdentifier(
+                    provider, configId, identifier);
             
             if (existingAccount.isPresent()) {
-                log.info("找到现有OIDC账号: provider={}, identifier={}", provider.getValue(), identifier);
+                log.info("找到现有OIDC账号: provider={}, configId={}, identifier={}", 
+                        provider.getValue(), configId, identifier);
                 return existingAccount.get();
             }
             
             // 3. 如果账号不存在，创建新账号（待绑定状态）
-            log.info("创建新OIDC账号: provider={}, identifier={}", provider.getValue(), identifier);
-            Account newAccount = createNewOidcAccount(oidcResult, provider, identifier, null);
+            log.info("创建新OIDC账号: provider={}, configId={}, identifier={}", 
+                    provider.getValue(), configId, identifier);
+            Account newAccount = createNewOidcAccount(oidcResult, provider, identifier, null, configId);
             
             // 4. 保存新账号到数据库
             Account savedAccount = accountRepository.save(newAccount);
-            log.info("OIDC账号创建成功: provider={}, identifier={}, accountId={}", 
-                    provider.getValue(), identifier, savedAccount.getId().getValue());
+            log.info("OIDC账号创建成功: provider={}, configId={}, identifier={}, accountId={}", 
+                    provider.getValue(), configId, identifier, savedAccount.getId().getValue());
             
             return savedAccount;
             
         } catch (Exception e) {
-            log.error("查找或创建OIDC账号失败: provider={}, openId={}", oidcResult.getProvider(), oidcResult.getOpenId(), e);
+            log.error("查找或创建OIDC账号失败: provider={}, openId={}, configId={}", 
+                    oidcResult.getProvider(), oidcResult.getOpenId(), configId, e);
             throw new RuntimeException("OIDC账号处理失败", e);
         }
     }
@@ -72,7 +77,7 @@ public class OidcAccountServiceImpl implements OidcAccountService {
             
             // 2. 创建OIDC账号并关联到同一个用户
             AuthProvider oidcProvider = AuthProvider.of(oidcResult.getProvider().toUpperCase());
-            Account oidcAccount = createNewOidcAccount(oidcResult, oidcProvider, oidcResult.getOpenId(), existingAccount.get().getUserId());
+            Account oidcAccount = createNewOidcAccount(oidcResult, oidcProvider, oidcResult.getOpenId(), existingAccount.get().getUserId(), null);
             
             // 3. 保存OIDC账号到数据库
             Account savedOidcAccount = accountRepository.save(oidcAccount);
@@ -93,7 +98,7 @@ public class OidcAccountServiceImpl implements OidcAccountService {
      * 创建新的OIDC账号
      * 根据userId是否为null自动决定账号状态
      */
-    private Account createNewOidcAccount(OidcAuthResult oidcResult, AuthProvider provider, String identifier, UserId userId) {
+    private Account createNewOidcAccount(OidcAuthResult oidcResult, AuthProvider provider, String identifier, UserId userId, String configId) {
         // 根据userId是否为null决定账号状态
         AccountStatus status = (userId == null) ? AccountStatus.PENDING_BIND : AccountStatus.ACTIVE;
         
@@ -105,6 +110,8 @@ public class OidcAccountServiceImpl implements OidcAccountService {
                 .identifier(identifier)
                 .password(null) // OIDC账号不需要密码
                 .status(status) // 根据userId动态决定状态
+                .configId(configId) // 保存配置ID
+                .unionId(oidcResult.getUnionId()) // 保存UnionId
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();

@@ -6,6 +6,9 @@ public interface AccountRepository {
     // 根据认证提供商和标识符查找账号（利用组合索引优化）
     Optional<Account> findByProviderAndIdentifier(AuthProvider provider, String identifier);
     
+    // 根据认证提供商、配置ID和标识符查找账号（OIDC专用）
+    Optional<Account> findByProviderAndConfigIdAndIdentifier(AuthProvider provider, String configId, String identifier);
+    
     // 根据账号ID查找账号
     Optional<Account> findById(AccountId accountId);
     

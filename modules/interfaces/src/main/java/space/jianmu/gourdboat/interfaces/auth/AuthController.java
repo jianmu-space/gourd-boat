@@ -1,26 +1,32 @@
 package space.jianmu.gourdboat.interfaces.auth;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import space.jianmu.gourdboat.application.auth.AuthService;
+import space.jianmu.gourdboat.application.auth.OidcAccountService;
 import space.jianmu.gourdboat.application.auth.UnifiedJwtService;
 import space.jianmu.gourdboat.application.auth.command.LoginCommand;
 import space.jianmu.gourdboat.application.auth.dto.LoginResult;
 import space.jianmu.gourdboat.application.oidc.OidcService;
 import space.jianmu.gourdboat.application.oidc.dto.OidcAuthResult;
-import space.jianmu.gourdboat.application.auth.OidcAccountService;
 import space.jianmu.gourdboat.application.verification.VerificationCodeService;
 import space.jianmu.gourdboat.domain.account.Account;
 import space.jianmu.gourdboat.domain.user.PhoneNumber;
-
-import java.util.Map;
-import java.util.HashMap;
 
 @Slf4j
 @RestController
@@ -99,7 +105,7 @@ public class AuthController {
             }
             
             // 2. 根据OIDC用户信息查找或创建系统账号
-            Account account = oidcAccountService.findOrCreateAccount(oidcResult);
+            Account account = oidcAccountService.findOrCreateAccount(oidcResult, configId);
             
             // 3. 使用统一的JWT服务生成token
             Authentication authentication = createOidcAuthentication(account, oidcResult);

@@ -14,9 +14,10 @@ public interface OidcAccountService {
      * 根据OIDC认证结果查找或创建账号
      * 如果是新用户，返回PENDING_BIND状态的Account
      * @param oidcResult OIDC认证结果
+     * @param configId 配置ID
      * @return 系统账号（可能是待绑定状态）
      */
-    Account findOrCreateAccount(OidcAuthResult oidcResult);
+    Account findOrCreateAccount(OidcAuthResult oidcResult, String configId);
     
     /**
      * 绑定OIDC账号到现有用户

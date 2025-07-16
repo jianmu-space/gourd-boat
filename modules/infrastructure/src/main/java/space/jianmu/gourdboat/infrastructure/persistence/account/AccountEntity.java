@@ -20,11 +20,17 @@ public class AccountEntity {
     @Column(nullable = false)
     private String provider;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String identifier;
 
     @Column(nullable = false)
     private String status;
+
+    @Column(name = "config_id", nullable = true)
+    private String configId;
+
+    @Column(name = "union_id", nullable = true)
+    private String unionId;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
