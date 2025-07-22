@@ -32,6 +32,12 @@ public class AccountEntity {
     @Column(name = "union_id", nullable = true)
     private String unionId;
 
+    @Column(name = "temp_nickname", nullable = true)
+    private String tempNickname;
+
+    @Column(name = "temp_avatar", nullable = true)
+    private String tempAvatar;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

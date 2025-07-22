@@ -26,13 +26,16 @@ public class Account {
     AccountStatus status;        // 账号状态
     String configId;             // OIDC配置ID（用于区分同一provider的不同配置实例）
     String unionId;              // UnionId（微信等平台的联合用户标识）
+    String tempNickname;         // 临时存储的昵称（OIDC账号待绑定状态时使用）
+    String tempAvatar;           // 临时存储的头像URL（OIDC账号待绑定状态时使用）
     LocalDateTime createdAt;     // 创建时间
     LocalDateTime updatedAt;     // 更新时间
     
     @Builder(builderMethodName = "reconstruct")
     private Account(AccountId id, UserId userId, AccountType type,
                    AuthProvider provider, String identifier, String password, AccountStatus status,
-                   String configId, String unionId, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                   String configId, String unionId, String tempNickname, String tempAvatar, 
+                   LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.userId = userId;
         this.type = type;
@@ -42,6 +45,8 @@ public class Account {
         this.status = status;
         this.configId = configId;
         this.unionId = unionId;
+        this.tempNickname = tempNickname;
+        this.tempAvatar = tempAvatar;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -61,6 +66,8 @@ public class Account {
             newStatus,
             configId,
             unionId,
+            tempNickname,
+            tempAvatar,
             createdAt,
             LocalDateTime.now()
         );
@@ -88,6 +95,8 @@ public class Account {
             AccountStatus.ACTIVE,
             configId,
             unionId,
+            tempNickname,
+            tempAvatar,
             createdAt,
             LocalDateTime.now()
         );

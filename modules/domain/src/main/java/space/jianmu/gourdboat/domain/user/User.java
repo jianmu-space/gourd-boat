@@ -13,15 +13,17 @@ public class User {
     UserId id;                    // 用户ID
     PhoneNumber phoneNumber;      // 手机号(唯一标识)
     Nickname nickname;            // 用户昵称(用于社交展示)
+    String avatar;                // 头像URL
     UserStatus status;            // 用户状态
     LocalDateTime createdAt;      // 创建时间
     LocalDateTime updatedAt;      // 更新时间
     
-    private User(UserId id, PhoneNumber phoneNumber, Nickname nickname, UserStatus status, 
+    private User(UserId id, PhoneNumber phoneNumber, Nickname nickname, String avatar, UserStatus status, 
                 LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.phoneNumber = phoneNumber;
         this.nickname = nickname;
+        this.avatar = avatar;
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -35,6 +37,22 @@ public class User {
             UserId.generate(),
             phoneNumber,
             nickname,
+            null, // 默认无头像
+            UserStatus.ACTIVE,
+            LocalDateTime.now(),
+            LocalDateTime.now()
+        );
+    }
+    
+    /**
+     * 通过手机号、昵称和头像创建用户
+     */
+    public static User create(PhoneNumber phoneNumber, Nickname nickname, String avatar) {
+        return new User(
+            UserId.generate(),
+            phoneNumber,
+            nickname,
+            avatar,
             UserStatus.ACTIVE,
             LocalDateTime.now(),
             LocalDateTime.now()
@@ -50,6 +68,7 @@ public class User {
             id,
             phoneNumber,
             nickname,
+            avatar,
             newStatus,
             createdAt,
             LocalDateTime.now()
@@ -65,6 +84,23 @@ public class User {
             id,
             phoneNumber,
             newNickname,
+            avatar,
+            status,
+            createdAt,
+            LocalDateTime.now()
+        );
+    }
+    
+    /**
+     * 更新用户头像
+     * 返回新的用户实例
+     */
+    public User withAvatar(String newAvatar) {
+        return new User(
+            id,
+            phoneNumber,
+            nickname,
+            newAvatar,
             status,
             createdAt,
             LocalDateTime.now()

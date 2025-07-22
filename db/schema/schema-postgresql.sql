@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS boat_account (
     status       VARCHAR(20)  NOT NULL,
     config_id    VARCHAR(100) NULL,
     union_id     VARCHAR(100) NULL,
+    temp_nickname VARCHAR(100) NULL,
+    temp_avatar  VARCHAR(500) NULL,
     created_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -25,6 +27,8 @@ COMMENT ON COLUMN boat_account.password IS '账号密码（BCrypt等加密存储
 COMMENT ON COLUMN boat_account.status IS '账号状态（如ACTIVE、INACTIVE、LOCKED等）';
 COMMENT ON COLUMN boat_account.config_id IS 'OIDC配置ID（用于区分同一provider的不同配置实例，PASSWORD认证时为null）';
 COMMENT ON COLUMN boat_account.union_id IS 'UnionId（微信等平台的联合用户标识，用于跨应用识别同一用户）';
+COMMENT ON COLUMN boat_account.temp_nickname IS '临时存储的昵称（OIDC账号待绑定状态时使用）';
+COMMENT ON COLUMN boat_account.temp_avatar IS '临时存储的头像URL（OIDC账号待绑定状态时使用）';
 COMMENT ON COLUMN boat_account.created_at IS '创建时间';
 COMMENT ON COLUMN boat_account.updated_at IS '更新时间'; 
 
@@ -95,6 +99,28 @@ COMMENT ON COLUMN boat_oidc_provider_config.enabled IS '是否启用';
 COMMENT ON COLUMN boat_oidc_provider_config.description IS '配置描述（支持500字符）';
 COMMENT ON COLUMN boat_oidc_provider_config.created_at IS '创建时间';
 COMMENT ON COLUMN boat_oidc_provider_config.updated_at IS '更新时间';
+
+-- 用户表：存储用户基本信息
+CREATE TABLE IF NOT EXISTS boat_user (
+    id           VARCHAR(36)  PRIMARY KEY,
+    phone_number VARCHAR(20)  NOT NULL,
+    nickname     VARCHAR(100) NOT NULL,
+    avatar       VARCHAR(500),
+    status       VARCHAR(20)  NOT NULL,
+    created_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_boat_user_phone_number UNIQUE (phone_number)
+);
+
+-- 用户表注释
+COMMENT ON TABLE boat_user IS '用户表，存储用户基本信息，以手机号作为唯一标识';
+COMMENT ON COLUMN boat_user.id IS '用户ID，UUID';
+COMMENT ON COLUMN boat_user.phone_number IS '手机号（唯一标识）';
+COMMENT ON COLUMN boat_user.nickname IS '用户昵称';
+COMMENT ON COLUMN boat_user.avatar IS '头像URL';
+COMMENT ON COLUMN boat_user.status IS '用户状态（ACTIVE、INACTIVE等）';
+COMMENT ON COLUMN boat_user.created_at IS '创建时间';
+COMMENT ON COLUMN boat_user.updated_at IS '更新时间';
 
 -- 创建索引
 CREATE INDEX IF NOT EXISTS idx_oidc_provider_config_provider_enabled ON boat_oidc_provider_config(provider_code, enabled);

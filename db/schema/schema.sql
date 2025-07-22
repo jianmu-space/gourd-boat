@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS boat_account (
     status       VARCHAR(20)  NOT NULL COMMENT '账号状态（如ACTIVE、INACTIVE、LOCKED等）',
     config_id    VARCHAR(100) NULL COMMENT 'OIDC配置ID（用于区分同一provider的不同配置实例，PASSWORD认证时为null）',
     union_id     VARCHAR(100) NULL COMMENT 'UnionId（微信等平台的联合用户标识，用于跨应用识别同一用户）',
+    temp_nickname VARCHAR(100) NULL COMMENT '临时存储的昵称（OIDC账号待绑定状态时使用）',
+    temp_avatar  VARCHAR(500) NULL COMMENT '临时存储的头像URL（OIDC账号待绑定状态时使用）',
     created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     INDEX idx_boat_account_user_id (user_id),
@@ -48,6 +50,18 @@ CREATE TABLE IF NOT EXISTS boat_oidc_provider_config (
     INDEX idx_oidc_provider_config_provider_enabled (provider_code, enabled)
     -- 注意：使用逻辑外键，无物理外键约束
 ) COMMENT='OIDC服务商配置表，支持动态服务商配置，使用逻辑外键保证数据一致性';
+
+-- 用户表：存储用户基本信息
+CREATE TABLE IF NOT EXISTS boat_user (
+    id           VARCHAR(36)  PRIMARY KEY COMMENT '用户ID，UUID',
+    phone_number VARCHAR(20)  NOT NULL COMMENT '手机号（唯一标识）',
+    nickname     VARCHAR(100) NOT NULL COMMENT '用户昵称',
+    avatar       VARCHAR(500) NULL COMMENT '头像URL',
+    status       VARCHAR(20)  NOT NULL COMMENT '用户状态（ACTIVE、INACTIVE等）',
+    created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE INDEX idx_boat_user_phone_number (phone_number)
+) COMMENT='用户表，存储用户基本信息，以手机号作为唯一标识';
 
 -- 创建索引
 CREATE INDEX IF NOT EXISTS idx_oidc_provider_config_provider_enabled ON boat_oidc_provider_config(provider_code, enabled);

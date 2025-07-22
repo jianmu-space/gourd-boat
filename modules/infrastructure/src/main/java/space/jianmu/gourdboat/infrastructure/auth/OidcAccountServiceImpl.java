@@ -97,10 +97,29 @@ public class OidcAccountServiceImpl implements OidcAccountService {
     /**
      * 创建新的OIDC账号
      * 根据userId是否为null自动决定账号状态
+     * 同时提取并存储用户信息（昵称和头像）
      */
     private Account createNewOidcAccount(OidcAuthResult oidcResult, AuthProvider provider, String identifier, UserId userId, String configId) {
         // 根据userId是否为null决定账号状态
         AccountStatus status = (userId == null) ? AccountStatus.PENDING_BIND : AccountStatus.ACTIVE;
+        
+        // 从OIDC结果中提取用户信息
+        String tempNickname = null;
+        String tempAvatar = null;
+        
+        if (oidcResult.getUserInfo() != null) {
+            // 优先使用nickname，如果没有则使用name
+            tempNickname = oidcResult.getUserInfo().getNickname();
+            if (tempNickname == null || tempNickname.trim().isEmpty()) {
+                tempNickname = oidcResult.getUserInfo().getName();
+            }
+            
+            // 获取头像URL
+            tempAvatar = oidcResult.getUserInfo().getPicture();
+            
+            log.info("从OIDC提取用户信息: provider={}, identifier={}, nickname={}, avatar={}", 
+                    provider.getValue(), identifier, tempNickname, tempAvatar);
+        }
         
         return Account.reconstruct()
                 .id(AccountId.generate())
@@ -112,6 +131,8 @@ public class OidcAccountServiceImpl implements OidcAccountService {
                 .status(status) // 根据userId动态决定状态
                 .configId(configId) // 保存配置ID
                 .unionId(oidcResult.getUnionId()) // 保存UnionId
+                .tempNickname(tempNickname) // 临时存储昵称
+                .tempAvatar(tempAvatar) // 临时存储头像
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -134,7 +155,12 @@ public class OidcAccountServiceImpl implements OidcAccountService {
             }
             
             // 2. 根据手机号查找或创建用户
-            User user = findOrCreateUserByPhoneNumber(phoneNumber, nickname);
+            // 优先使用Account中预存的用户信息，如果没有则使用传入的nickname
+            String userNickname = (account.getTempNickname() != null && !account.getTempNickname().trim().isEmpty()) 
+                    ? account.getTempNickname() : nickname;
+            String userAvatar = account.getTempAvatar();
+            
+            User user = findOrCreateUserByPhoneNumber(phoneNumber, userNickname, userAvatar);
             
             // 3. 绑定账号到用户
             Account boundAccount = account.bindUser(user.getId());
@@ -164,13 +190,22 @@ public class OidcAccountServiceImpl implements OidcAccountService {
      * 根据手机号查找或创建用户
      * TODO: 需要实现UserRepository和UserService
      */
-    private User findOrCreateUserByPhoneNumber(PhoneNumber phoneNumber, String nickname) {
+    private User findOrCreateUserByPhoneNumber(PhoneNumber phoneNumber, String nickname, String avatar) {
         // 临时实现：需要实现用户管理逻辑
         // 1. 根据手机号查找现有用户
         // 2. 如果不存在，创建新用户
         
-        // 目前先创建新用户
+        // 目前先创建新用户，使用OIDC提供的用户信息
         Nickname userNickname = Nickname.of(nickname);
-        return User.create(phoneNumber, userNickname);
+        
+        if (avatar != null && !avatar.trim().isEmpty()) {
+            log.info("创建用户，使用OIDC头像信息: phoneNumber={}, nickname={}, avatar={}", 
+                    phoneNumber, nickname, avatar);
+            return User.create(phoneNumber, userNickname, avatar);
+        } else {
+            log.info("创建用户，无头像信息: phoneNumber={}, nickname={}", 
+                    phoneNumber, nickname);
+            return User.create(phoneNumber, userNickname);
+        }
     }
 } 
