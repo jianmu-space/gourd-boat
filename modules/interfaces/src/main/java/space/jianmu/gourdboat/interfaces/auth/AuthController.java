@@ -1,6 +1,7 @@
 package space.jianmu.gourdboat.interfaces.auth;
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -96,22 +97,20 @@ public class AuthController {
         log.info("OIDC授权回调: provider={}, configId={}, state={}", provider, configId, state);
         
         try {
-            // 1. 通过OidcService处理授权码，获取用户信息
+            // 1. 处理授权码，获取认证结果
             OidcAuthResult oidcResult = oidcService.handleAuthorizationCode(provider, configId, code, state);
-            
             if (!oidcResult.isSuccess()) {
                 log.error("OIDC授权失败: provider={}, error={}", provider, oidcResult.getError());
                 throw new RuntimeException("OIDC授权失败: " + oidcResult.getError());
             }
             
-            // 2. 根据OIDC用户信息查找或创建系统账号
-            Account account = oidcAccountService.findOrCreateAccount(oidcResult, configId);
+            // 2. 查找或创建账号
+            Account account = findOrCreateAccount(provider, configId, oidcResult);
             
-            // 3. 使用统一的JWT服务生成token
+            // 3. 设置认证信息并生成JWT
             Authentication authentication = createOidcAuthentication(account, oidcResult);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             
-            // 使用统一的JWT服务生成token
             LoginResult result = unifiedJwtService.generateJwtFromAccount(account);
             
             log.info("OIDC认证成功: provider={}, identifier={}, accountId={}, userStatus={}", 
@@ -126,7 +125,36 @@ public class AuthController {
         }
     }
     
-        /**
+    /**
+     * 查找或创建OIDC账号
+     */
+    private Account findOrCreateAccount(String provider, String configId, OidcAuthResult oidcResult) {
+        // 先尝试查找现有账号
+        Optional<Account> existingAccount = oidcAccountService.findAccount(
+            provider, configId, oidcResult.getOpenId());
+        
+        if (existingAccount.isPresent()) {
+            Account account = existingAccount.get();
+            log.info("找到现有OIDC账号: provider={}, identifier={}, accountId={}", 
+                provider, oidcResult.getOpenId(), account.getId().getValue());
+            return account;
+        }
+        
+        // 创建新账号前检查用户信息
+        if (oidcResult.getUserInfo() == null) {
+            log.error("OIDC认证结果中缺少用户信息: provider={}, openId={}", 
+                provider, oidcResult.getOpenId());
+            throw new RuntimeException("OIDC认证结果中缺少用户信息，请检查提供商配置");
+        }
+        
+        Account newAccount = oidcAccountService.createAccount(oidcResult, configId);
+        log.info("创建新OIDC账号: provider={}, identifier={}, accountId={}", 
+            provider, oidcResult.getOpenId(), newAccount.getId().getValue());
+        
+        return newAccount;
+    }
+    
+    /**
      * 发送手机号验证码
      * 用于OIDC账号绑定流程中的手机号验证
      */

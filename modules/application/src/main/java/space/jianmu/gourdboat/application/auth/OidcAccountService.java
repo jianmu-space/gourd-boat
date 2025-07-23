@@ -4,6 +4,8 @@ import space.jianmu.gourdboat.application.oidc.dto.OidcAuthResult;
 import space.jianmu.gourdboat.domain.account.Account;
 import space.jianmu.gourdboat.domain.user.PhoneNumber;
 
+import java.util.Optional;
+
 /**
  * OIDC账号服务接口
  * 负责处理OIDC用户的查找、创建和绑定逻辑
@@ -11,13 +13,22 @@ import space.jianmu.gourdboat.domain.user.PhoneNumber;
 public interface OidcAccountService {
     
     /**
-     * 根据OIDC认证结果查找或创建账号
-     * 如果是新用户，返回PENDING_BIND状态的Account
-     * @param oidcResult OIDC认证结果
+     * 根据OIDC认证结果查找账号
+     * @param provider OIDC提供商代码
      * @param configId 配置ID
-     * @return 系统账号（可能是待绑定状态）
+     * @param identifier 用户标识符（通常是openId）
+     * @return 可能存在的账号
      */
-    Account findOrCreateAccount(OidcAuthResult oidcResult, String configId);
+    Optional<Account> findAccount(String provider, String configId, String identifier);
+    
+    /**
+     * 创建新的OIDC账号
+     * @param oidcResult OIDC认证结果（必须包含userInfo）
+     * @param configId 配置ID
+     * @return 新创建的账号（PENDING_BIND状态）
+     * @throws IllegalArgumentException 如果oidcResult中不包含userInfo
+     */
+    Account createAccount(OidcAuthResult oidcResult, String configId);
     
     /**
      * 绑定OIDC账号到现有用户

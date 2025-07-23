@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 
 import space.jianmu.gourdboat.application.oidc.dto.OidcAuthResult;
 import space.jianmu.gourdboat.application.oidc.dto.OidcTokenValidationResult;
-import space.jianmu.gourdboat.application.oidc.dto.OidcUserInfo;
 import space.jianmu.gourdboat.domain.oidc.OidcProviderConfig;
 
 /**
@@ -28,11 +27,6 @@ public interface OidcProviderStrategy {
      * 验证ID Token
      */
     OidcTokenValidationResult validateIdToken(OidcProviderConfig config, String idToken);
-    
-    /**
-     * 获取用户信息
-     */
-    OidcUserInfo getUserInfo(OidcProviderConfig config, String accessToken);
     
     /**
      * URL编码工具方法

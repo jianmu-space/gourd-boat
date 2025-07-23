@@ -2,7 +2,6 @@ package space.jianmu.gourdboat.application.oidc;
 
 import space.jianmu.gourdboat.application.oidc.dto.OidcAuthResult;
 import space.jianmu.gourdboat.application.oidc.dto.OidcTokenValidationResult;
-import space.jianmu.gourdboat.application.oidc.dto.OidcUserInfo;
 
 /**
  * OIDC服务接口
@@ -37,13 +36,4 @@ public interface OidcService {
      * @return 验证结果
      */
     OidcTokenValidationResult validateIdToken(String provider, String configId, String idToken);
-    
-    /**
-     * 获取用户信息
-     * @param provider 认证服务商
-     * @param configId 配置ID
-     * @param accessToken 访问令牌
-     * @return 用户信息
-     */
-    OidcUserInfo getUserInfo(String provider, String configId, String accessToken);
 } 

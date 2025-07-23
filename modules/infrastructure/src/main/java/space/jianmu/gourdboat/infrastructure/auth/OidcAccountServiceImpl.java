@@ -23,41 +23,46 @@ public class OidcAccountServiceImpl implements OidcAccountService {
     private final AccountRepository accountRepository;
     
     @Override
-    public Account findOrCreateAccount(OidcAuthResult oidcResult, String configId) {
-        log.info("查找或创建OIDC账号: provider={}, openId={}, configId={}", 
+    public Optional<Account> findAccount(String provider, String configId, String identifier) {
+        log.info("查找OIDC账号: provider={}, configId={}, identifier={}", provider, configId, identifier);
+        
+        try {
+            AuthProvider authProvider = AuthProvider.of(provider.toUpperCase());
+            return accountRepository.findByProviderAndConfigIdAndIdentifier(authProvider, configId, identifier);
+        } catch (Exception e) {
+            log.error("查找OIDC账号失败: provider={}, configId={}, identifier={}", 
+                    provider, configId, identifier, e);
+            throw new RuntimeException("查找OIDC账号失败", e);
+        }
+    }
+    
+    @Override
+    public Account createAccount(OidcAuthResult oidcResult, String configId) {
+        log.info("创建OIDC账号: provider={}, openId={}, configId={}", 
                 oidcResult.getProvider(), oidcResult.getOpenId(), configId);
+        
+        if (oidcResult.getUserInfo() == null) {
+            throw new IllegalArgumentException("创建账号需要用户信息，但oidcResult.userInfo为空");
+        }
         
         try {
             // 1. 构建认证提供商
             AuthProvider provider = AuthProvider.of(oidcResult.getProvider().toUpperCase());
             
-            // 2. 使用configId和openId作为identifier查找现有账号
-            String identifier = oidcResult.getOpenId();
-            Optional<Account> existingAccount = accountRepository.findByProviderAndConfigIdAndIdentifier(
-                    provider, configId, identifier);
+            // 2. 创建新账号（待绑定状态）
+            Account newAccount = createNewOidcAccount(oidcResult, provider, oidcResult.getOpenId(), null, configId);
             
-            if (existingAccount.isPresent()) {
-                log.info("找到现有OIDC账号: provider={}, configId={}, identifier={}", 
-                        provider.getValue(), configId, identifier);
-                return existingAccount.get();
-            }
-            
-            // 3. 如果账号不存在，创建新账号（待绑定状态）
-            log.info("创建新OIDC账号: provider={}, configId={}, identifier={}", 
-                    provider.getValue(), configId, identifier);
-            Account newAccount = createNewOidcAccount(oidcResult, provider, identifier, null, configId);
-            
-            // 4. 保存新账号到数据库
+            // 3. 保存新账号到数据库
             Account savedAccount = accountRepository.save(newAccount);
             log.info("OIDC账号创建成功: provider={}, configId={}, identifier={}, accountId={}", 
-                    provider.getValue(), configId, identifier, savedAccount.getId().getValue());
+                    provider.getValue(), configId, oidcResult.getOpenId(), savedAccount.getId().getValue());
             
             return savedAccount;
             
         } catch (Exception e) {
-            log.error("查找或创建OIDC账号失败: provider={}, openId={}, configId={}", 
+            log.error("创建OIDC账号失败: provider={}, openId={}, configId={}", 
                     oidcResult.getProvider(), oidcResult.getOpenId(), configId, e);
-            throw new RuntimeException("OIDC账号处理失败", e);
+            throw new RuntimeException("创建OIDC账号失败", e);
         }
     }
     

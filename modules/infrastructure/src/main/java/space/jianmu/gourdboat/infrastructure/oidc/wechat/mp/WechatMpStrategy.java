@@ -56,14 +56,50 @@ public class WechatMpStrategy implements OidcProviderStrategy {
     
     @Override
     public OidcAuthResult handleAuthorizationCode(OidcProviderConfig config, String code, String state) {
+        log.info("处理微信授权码: configId={}, code={}", config.getConfigId(), code);
+        
         // 1. 获取access_token
         WechatMpApiClient.WechatAccessTokenResponse tokenResponse = wechatMpApiClient.getSnsAccessToken(config, code);
         if (tokenResponse.getErrcode() != null && tokenResponse.getErrcode() != 0) {
+            log.error("获取微信access_token失败: {}", tokenResponse.getErrmsg());
             return OidcAuthResult.builder()
                     .success(false)
                     .error("获取access_token失败: " + tokenResponse.getErrmsg())
                     .build();
         }
+        
+        // 2. 如果scope包含用户信息权限，直接获取用户信息
+        OidcUserInfo userInfo = null;
+        String scope = tokenResponse.getScope();
+        if (scope != null && scope.contains("snsapi_userinfo")) {
+            log.info("检测到snsapi_userinfo权限，直接获取用户信息");
+            try {
+                WechatMpApiClient.WechatUserInfoResponse userInfoResp = wechatMpApiClient.getUserInfo(
+                    tokenResponse.getAccessToken(), 
+                    tokenResponse.getOpenid()
+                );
+                
+                if (userInfoResp != null && (userInfoResp.getErrcode() == null || userInfoResp.getErrcode() == 0)) {
+                    userInfo = OidcUserInfo.builder()
+                        .provider(AuthProvider.WECHAT_MP)
+                        .openId(userInfoResp.getOpenid())
+                        .unionId(userInfoResp.getUnionid())
+                        .nickname(userInfoResp.getNickname())
+                        .picture(userInfoResp.getHeadimgurl())
+                        .build();
+                    log.info("获取微信用户信息成功: openId={}, nickname={}", 
+                        userInfoResp.getOpenid(), userInfoResp.getNickname());
+                } else {
+                    log.warn("获取微信用户信息失败: {}", 
+                        userInfoResp != null ? userInfoResp.getErrmsg() : "无响应");
+                }
+            } catch (Exception e) {
+                log.warn("获取微信用户信息异常: {}", e.getMessage(), e);
+            }
+        } else {
+            log.info("当前scope不包含用户信息权限: {}", scope);
+        }
+        
         return OidcAuthResult.builder()
                 .success(true)
                 .accessToken(tokenResponse.getAccessToken())
@@ -71,6 +107,7 @@ public class WechatMpStrategy implements OidcProviderStrategy {
                 .unionId(tokenResponse.getUnionid())
                 .expiresIn(tokenResponse.getExpiresIn() != null ? tokenResponse.getExpiresIn().longValue() : null)
                 .provider(AuthProvider.WECHAT_MP)
+                .userInfo(userInfo) // 直接包含用户信息
                 .build();
     }
     
@@ -81,55 +118,5 @@ public class WechatMpStrategy implements OidcProviderStrategy {
                 .valid(true)
                 .claims(Map.of("openid", idToken))
                 .build();
-    }
-    
-    @Override
-    public OidcUserInfo getUserInfo(OidcProviderConfig config, String accessToken) {
-        // TODO: 需根据accessToken查找openId，或由上游传递/存储
-        String openId = null; // 这里需后续补充查找逻辑
-        log.info("获取微信用户信息, configId={}, openId={}, accessToken={}", config.getConfigId(), openId, accessToken != null ? accessToken.substring(0, 8) + "..." : null);
-        if (openId == null) {
-            log.warn("未能获取openId，无法获取用户信息");
-            return OidcUserInfo.builder().provider(AuthProvider.WECHAT_MP).nickname("ERROR: openId缺失").build();
-        }
-        WechatMpApiClient.WechatUserInfoResponse resp = wechatMpApiClient.getUserInfo(accessToken, openId);
-        if (resp == null || (resp.getErrcode() != null && resp.getErrcode() != 0)) {
-            log.warn("获取微信用户信息失败: {}", resp != null ? resp.getErrmsg() : "无响应");
-            return OidcUserInfo.builder()
-                    .provider(AuthProvider.WECHAT_MP)
-                    .nickname("ERROR: " + (resp != null ? resp.getErrmsg() : "获取用户信息失败"))
-                    .build();
-        }
-        log.info("获取微信用户信息成功, openId={}, nickname={}", resp.getOpenid(), resp.getNickname());
-        return OidcUserInfo.builder()
-                .provider(AuthProvider.WECHAT_MP)
-                .openId(resp.getOpenid())
-                .unionId(resp.getUnionid())
-                .nickname(resp.getNickname())
-                .picture(resp.getHeadimgurl())
-                .build();
-    }
-
-    // 微信用户信息响应
-    private static class WechatUserInfoResponse {
-        private String openid;
-        private String nickname;
-        private String headimgurl;
-        private String unionid;
-        private Integer errcode;
-        private String errmsg;
-        // getters and setters
-        public String getOpenid() { return openid; }
-        public void setOpenid(String openid) { this.openid = openid; }
-        public String getNickname() { return nickname; }
-        public void setNickname(String nickname) { this.nickname = nickname; }
-        public String getHeadimgurl() { return headimgurl; }
-        public void setHeadimgurl(String headimgurl) { this.headimgurl = headimgurl; }
-        public String getUnionid() { return unionid; }
-        public void setUnionid(String unionid) { this.unionid = unionid; }
-        public Integer getErrcode() { return errcode; }
-        public void setErrcode(Integer errcode) { this.errcode = errcode; }
-        public String getErrmsg() { return errmsg; }
-        public void setErrmsg(String errmsg) { this.errmsg = errmsg; }
     }
 } 

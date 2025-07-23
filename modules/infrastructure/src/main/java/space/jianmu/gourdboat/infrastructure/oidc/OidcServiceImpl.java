@@ -10,7 +10,6 @@ import space.jianmu.gourdboat.application.oidc.OidcProviderConfigValidator;
 import space.jianmu.gourdboat.application.oidc.OidcService;
 import space.jianmu.gourdboat.application.oidc.dto.OidcAuthResult;
 import space.jianmu.gourdboat.application.oidc.dto.OidcTokenValidationResult;
-import space.jianmu.gourdboat.application.oidc.dto.OidcUserInfo;
 import space.jianmu.gourdboat.domain.account.AuthProvider;
 import space.jianmu.gourdboat.domain.oidc.OidcErrorCode;
 import space.jianmu.gourdboat.domain.oidc.OidcAuthenticationException;
@@ -68,20 +67,6 @@ public class OidcServiceImpl implements OidcService {
             throw e;
         } catch (Exception e) {
             log.error("验证ID Token失败: provider={}, configId={}", provider, configId, e);
-            throw new OidcAuthenticationException(OidcErrorCode.INTERNAL_ERROR, provider, e);
-        }
-    }
-    
-    @Override
-    public OidcUserInfo getUserInfo(String provider, String configId, String accessToken) {
-        try {
-            OidcProviderConfig config = getConfig(AuthProvider.of(provider), configId);
-            OidcProviderStrategy strategy = getProviderStrategy(provider);
-            return strategy.getUserInfo(config, accessToken);
-        } catch (OidcAuthenticationException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("获取用户信息失败: provider={}, configId={}", provider, configId, e);
             throw new OidcAuthenticationException(OidcErrorCode.INTERNAL_ERROR, provider, e);
         }
     }
