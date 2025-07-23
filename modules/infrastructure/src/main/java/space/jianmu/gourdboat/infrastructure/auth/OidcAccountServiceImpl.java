@@ -144,8 +144,8 @@ public class OidcAccountServiceImpl implements OidcAccountService {
     }
     
     @Override
-    public Account bindToPhoneNumber(String accountId, PhoneNumber phoneNumber, String nickname) {
-        log.info("绑定OIDC账号到手机号: accountId={}, phoneNumber={}", accountId, phoneNumber);
+    public Account bindAccountToUser(String accountId, PhoneNumber phoneNumber, String nickname) {
+        log.info("绑定OIDC账号到用户: accountId={}, phoneNumber={}", accountId, phoneNumber);
         
         try {
             // 1. 查找待绑定的账号
@@ -173,14 +173,14 @@ public class OidcAccountServiceImpl implements OidcAccountService {
             // 4. 保存更新后的账号
             Account savedAccount = accountRepository.save(boundAccount);
             
-            log.info("OIDC账号绑定成功: accountId={}, phoneNumber={}, userId={}", 
+            log.info("OIDC账号绑定到用户成功: accountId={}, phoneNumber={}, userId={}", 
                     accountId, phoneNumber, user.getId());
             
             return savedAccount;
             
         } catch (Exception e) {
-            log.error("绑定OIDC账号到手机号失败: accountId={}, phoneNumber={}", accountId, phoneNumber, e);
-            throw new RuntimeException("绑定失败", e);
+            log.error("绑定OIDC账号到用户失败: accountId={}, phoneNumber={}", accountId, phoneNumber, e);
+            throw new RuntimeException("账号绑定失败", e);
         }
     }
     

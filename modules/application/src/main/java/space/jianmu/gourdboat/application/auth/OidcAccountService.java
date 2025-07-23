@@ -39,11 +39,12 @@ public interface OidcAccountService {
     Account bindOidcToExistingUser(OidcAuthResult oidcResult, String existingIdentifier);
     
     /**
-     * 将待绑定状态的OIDC账号绑定到手机号
+     * 将待绑定状态的OIDC账号绑定到用户
+     * 根据手机号查找现有用户或创建新用户，然后将账号绑定到该用户
      * @param accountId 账号ID
-     * @param phoneNumber 手机号
+     * @param phoneNumber 手机号（用于标识用户）
      * @param nickname 用户昵称
      * @return 绑定后的账号
      */
-    Account bindToPhoneNumber(String accountId, PhoneNumber phoneNumber, String nickname);
+    Account bindAccountToUser(String accountId, PhoneNumber phoneNumber, String nickname);
 } 

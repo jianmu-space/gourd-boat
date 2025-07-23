@@ -1,5 +1,170 @@
 # GourdBoat 项目开发规范
 
+## API 安全设计规范
+
+### 🚫 禁止在API参数中传递用户身份标识
+
+**核心原则**：永远不要在API请求参数中传递 `accountId`、`userId`、`bindToken` 等用户身份标识，应该从认证上下文中获取。
+
+#### ❌ 错误示例
+```java
+// 错误：允许用户在参数中传递accountId
+@PostMapping("/update-profile")
+public ResponseEntity<?> updateProfile(@RequestBody UpdateProfileRequest request) {
+    // 用户可以篡改accountId访问其他用户数据！
+    userService.updateProfile(request.accountId(), request.profile());
+}
+
+// 错误：在URL路径中暴露用户ID
+@GetMapping("/users/{userId}/profile")
+public ResponseEntity<?> getUserProfile(@PathVariable String userId) {
+    // 用户可以遍历其他用户的ID！
+    return userService.getProfile(userId);
+}
+
+// 错误：在请求体中传递用户标识
+public record UpdateProfileRequest(
+    String accountId,  // ❌ 危险！用户可以篡改
+    String userId,     // ❌ 危险！
+    ProfileData profile
+) {}
+```
+
+#### ✅ 正确示例
+```java
+// 正确：从Spring Security上下文获取用户信息
+@PostMapping("/update-profile")
+public ResponseEntity<?> updateProfile(@RequestBody UpdateProfileRequest request) {
+    // 从认证上下文获取当前用户信息
+    CurrentUserInfo userInfo = getCurrentUserInfo();
+    userService.updateProfile(userInfo.userId(), request.profile());
+}
+
+// 正确：操作当前用户的资源
+@GetMapping("/profile")  // 隐含的是"我的"资料
+public ResponseEntity<?> getMyProfile() {
+    CurrentUserInfo userInfo = getCurrentUserInfo();
+    return userService.getProfile(userInfo.userId());
+}
+
+// 正确：请求体只包含业务数据
+public record UpdateProfileRequest(
+    ProfileData profile  // ✅ 只包含业务数据
+) {}
+```
+
+### 🔐 安全获取用户信息的标准模式
+
+#### 1. 创建用户信息提取工具
+```java
+/**
+ * 从Spring Security上下文获取当前用户信息
+ */
+private CurrentUserInfo getCurrentUserInfo() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null || !auth.isAuthenticated()) {
+        throw new UnauthorizedException("用户未认证");
+    }
+    
+    // 从JWT中提取用户信息
+    String token = getCurrentJwtToken();
+    Claims claims = jwtTokenProvider.getClaimsFromToken(token);
+    
+    return new CurrentUserInfo(
+        claims.get("accountId", String.class),
+        claims.get("userId", String.class),
+        claims.get("userStatus", String.class)
+    );
+}
+```
+
+#### 2. 在Controller中使用
+```java
+@RestController
+@RequiredArgsConstructor
+public class UserController {
+    
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request) {
+        // ✅ 安全：从认证上下文获取用户信息
+        CurrentUserInfo userInfo = getCurrentUserInfo();
+        
+        userService.changePassword(
+            userInfo.accountId(),  // 来自JWT，无法篡改
+            request.oldPassword(),
+            request.newPassword()
+        );
+        
+        return ResponseEntity.ok().build();
+    }
+}
+```
+
+### 🎯 例外情况（需要特别注意）
+
+#### 管理员操作
+```java
+// ✅ 例外：管理员操作其他用户时可以传递目标用户ID
+@PostMapping("/admin/users/{targetUserId}/disable")
+@PreAuthorize("hasRole('ADMIN')")  // 必须有明确的权限检查
+public ResponseEntity<?> disableUser(@PathVariable String targetUserId) {
+    // 获取当前管理员信息
+    CurrentUserInfo adminInfo = getCurrentUserInfo();
+    
+    // 记录管理员操作日志
+    auditService.logAdminAction(adminInfo.userId(), "DISABLE_USER", targetUserId);
+    
+    userService.disableUser(targetUserId);
+    return ResponseEntity.ok().build();
+}
+```
+
+#### 资源关联操作
+```java
+// ✅ 例外：操作用户拥有的资源时，资源ID可以作为参数
+@DeleteMapping("/articles/{articleId}")
+public ResponseEntity<?> deleteArticle(@PathVariable String articleId) {
+    CurrentUserInfo userInfo = getCurrentUserInfo();
+    
+    // 验证文章归属
+    if (!articleService.isOwner(articleId, userInfo.userId())) {
+        throw new ForbiddenException("无权操作此文章");
+    }
+    
+    articleService.delete(articleId);
+    return ResponseEntity.ok().build();
+}
+```
+
+### 📋 检查清单
+
+在编写API时，请检查：
+
+- [ ] ✅ 所有需要用户身份的操作都从认证上下文获取用户信息
+- [ ] ✅ 请求参数中不包含 `accountId`、`userId`、`bindToken` 等敏感标识
+- [ ] ✅ URL路径中不暴露用户ID（除非是管理员操作且有权限控制）
+- [ ] ✅ 所有用户资源操作都验证了归属权限
+- [ ] ✅ 管理员操作有明确的权限注解和审计日志
+
+### 🛡️ 安全考虑
+
+1. **水平权限提升防护**：用户无法通过修改参数访问其他用户数据
+2. **垂直权限提升防护**：普通用户无法通过参数获得管理员权限
+3. **审计友好**：所有敏感操作都基于认证用户，便于审计追踪
+4. **符合RESTful原则**：资源操作基于认证主体，语义清晰
+
+### 🔄 重构指导
+
+如果发现现有代码违反此规则：
+
+1. **识别问题**：查找API参数中的用户标识
+2. **提取用户信息**：实现 `getCurrentUserInfo()` 方法
+3. **验证权限**：确保用户只能操作自己的资源
+4. **更新API文档**：说明API基于认证用户操作
+5. **添加测试**：验证权限控制正确性
+
+---
+
 ## 代码重构和方法抽取原则
 
 ### 方法抽取的判断标准

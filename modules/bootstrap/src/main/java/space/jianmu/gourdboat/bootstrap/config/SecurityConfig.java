@@ -34,10 +34,17 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
+                // 登录相关的API - 允许匿名访问
+                .requestMatchers("/api/login/**").permitAll()
+                // 账号关联相关的API - 需要认证（JWT验证）
+                .requestMatchers("/api/account-linking/**").authenticated()
+                // 公共API
                 .requestMatchers("/api/public/**").permitAll()
+                // 开发环境数据库控制台
                 .requestMatchers("/h2-console/**").permitAll()
+                // 健康检查
                 .requestMatchers("/actuator/health").permitAll()
+                // 其他请求需要认证
                 .anyRequest().authenticated()
             )
             .headers(headers -> headers.frameOptions(config -> config.disable()))
