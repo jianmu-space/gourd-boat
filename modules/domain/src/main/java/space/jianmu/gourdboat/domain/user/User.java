@@ -106,4 +106,14 @@ public class User {
             LocalDateTime.now()
         );
     }
+
+    /**
+     * 从持久化数据重建用户实例
+     * 用于从数据库加载用户数据时使用
+     */
+    public static User reconstruct(UserId id, PhoneNumber phoneNumber, Nickname nickname, 
+                                 String avatar, UserStatus status, 
+                                 LocalDateTime createdAt, LocalDateTime updatedAt) {
+        return new User(id, phoneNumber, nickname, avatar, status, createdAt, updatedAt);
+    }
 } 

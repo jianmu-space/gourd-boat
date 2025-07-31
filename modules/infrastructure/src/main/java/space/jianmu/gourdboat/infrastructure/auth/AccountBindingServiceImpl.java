@@ -11,6 +11,7 @@ import space.jianmu.gourdboat.domain.account.AccountRepository;
 import space.jianmu.gourdboat.domain.account.AccountStatus;
 import space.jianmu.gourdboat.domain.user.PhoneNumber;
 import space.jianmu.gourdboat.domain.user.User;
+import space.jianmu.gourdboat.domain.user.UserRepository;
 import space.jianmu.gourdboat.domain.user.Nickname;
 
 import java.util.Optional;
@@ -26,7 +27,7 @@ public class AccountBindingServiceImpl implements AccountBindingService {
     
     private final AccountRepository accountRepository;
     private final VerificationCodeService verificationCodeService;
-    // TODO: 添加 UserRepository userRepository;
+    private final UserRepository userRepository;
     
     @Override
     public Account bindAccountByPhoneVerification(String accountId, PhoneNumber phoneNumber, 
@@ -123,24 +124,36 @@ public class AccountBindingServiceImpl implements AccountBindingService {
     
     /**
      * 根据手机号查找或创建用户
-     * TODO: 需要实现UserRepository和UserService
+     * 实现完整的用户管理逻辑
      */
     private User findOrCreateUserByPhoneNumber(PhoneNumber phoneNumber, String nickname, String avatar) {
-        // 临时实现：需要实现用户管理逻辑
-        // 1. 根据手机号查找现有用户
-        // 2. 如果不存在，创建新用户
+        log.info("查找或创建用户: phoneNumber={}, nickname={}", phoneNumber, nickname);
         
-        // 目前先创建新用户，使用传入的用户信息
+        // 1. 根据手机号查找现有用户
+        Optional<User> existingUser = userRepository.findByPhoneNumber(phoneNumber);
+        if (existingUser.isPresent()) {
+            User user = existingUser.get();
+            log.info("找到现有用户: phoneNumber={}, userId={}", phoneNumber, user.getId());
+            return user;
+        }
+        
+        // 2. 用户不存在，创建新用户
+        log.info("创建新用户: phoneNumber={}, nickname={}, avatar={}", 
+                phoneNumber, nickname, avatar);
+        
         Nickname userNickname = Nickname.of(nickname);
+        User newUser;
         
         if (avatar != null && !avatar.trim().isEmpty()) {
-            log.info("创建用户，包含头像信息: phoneNumber={}, nickname={}, avatar={}", 
-                    phoneNumber, nickname, avatar);
-            return User.create(phoneNumber, userNickname, avatar);
+            newUser = User.create(phoneNumber, userNickname, avatar);
         } else {
-            log.info("创建用户，无头像信息: phoneNumber={}, nickname={}", 
-                    phoneNumber, nickname);
-            return User.create(phoneNumber, userNickname);
+            newUser = User.create(phoneNumber, userNickname);
         }
+        
+        // 3. 保存新用户
+        User savedUser = userRepository.save(newUser);
+        log.info("用户创建成功: phoneNumber={}, userId={}", phoneNumber, savedUser.getId());
+        
+        return savedUser;
     }
 } 

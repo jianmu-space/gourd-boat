@@ -22,8 +22,8 @@ import space.jianmu.gourdboat.domain.user.PhoneNumber;
 import space.jianmu.gourdboat.infrastructure.security.JwtTokenProvider;
 
 /**
- * 账号关联控制器
- * 专门处理账号与用户关联的业务：将PENDING_BIND状态的账号关联到用户
+ * 账号绑定控制器
+ * 专门处理账号与用户绑定的业务：将PENDING_BIND状态的账号绑定到用户
  * 
  * 设计原则：
  * - 完全依赖Spring Security的JWT认证
@@ -31,9 +31,9 @@ import space.jianmu.gourdboat.infrastructure.security.JwtTokenProvider;
  * - 不需要在请求参数中重复传递token
  * 
  * 核心场景：
- * - OIDC登录后，账号处于PENDING_BIND状态，需要关联到具体用户
- * - 支持多种关联方式：手机号验证、密码验证等
- * - 关联完成后，账号状态从PENDING_BIND变为ACTIVE
+ * - OIDC登录后，账号处于PENDING_BIND状态，需要绑定到具体用户
+ * - 支持多种绑定方式：手机号验证、密码验证等
+ * - 绑定完成后，账号状态从PENDING_BIND变为ACTIVE
  * 
  * 安全机制：
  * - Spring Security自动验证JWT有效性
@@ -42,9 +42,9 @@ import space.jianmu.gourdboat.infrastructure.security.JwtTokenProvider;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/account-linking")
+@RequestMapping("/api/account-binding")
 @RequiredArgsConstructor
-public class AccountLinkingController {
+public class AccountBindingController {
 
     private final AccountBindingService accountBindingService;
     private final VerificationCodeService verificationCodeService;
@@ -52,25 +52,25 @@ public class AccountLinkingController {
     private final JwtTokenProvider jwtTokenProvider;
 
     /**
-     * 检查当前账号关联状态
+     * 检查当前账号绑定状态
      * 从Spring Security上下文中获取当前用户信息
      * 
-     * @return 关联状态信息
+     * @return 绑定状态信息
      */
     @GetMapping("/status")
-    public ResponseEntity<Map<String, Object>> checkLinkingStatus() {
-        log.info("检查当前账号关联状态");
+    public ResponseEntity<Map<String, Object>> checkBindingStatus() {
+        log.info("检查当前账号绑定状态");
         
         try {
             // 1. 从Spring Security上下文获取账号信息
             CurrentAccountInfo accountInfo = getCurrentAccountInfo();
             
-            // 2. 验证账号关联条件
+            // 2. 验证账号绑定条件
             AccountBindingService.BindingValidationResult validation = 
                 accountBindingService.validateAccountBinding(accountInfo.accountId());
             
             return ResponseEntity.ok(Map.of(
-                "canLink", validation.canBind(),
+                "canBind", validation.canBind(),
                 "reason", validation.reason(),
                 "accountStatus", validation.accountStatus(),
                 "accountId", accountInfo.accountId(),
@@ -79,9 +79,9 @@ public class AccountLinkingController {
             ));
             
         } catch (Exception e) {
-            log.error("检查账号关联状态失败", e);
+            log.error("检查账号绑定状态失败", e);
             return ResponseEntity.ok(Map.of(
-                "canLink", false,
+                "canBind", false,
                 "reason", "状态检查失败: " + e.getMessage(),
                 "accountStatus", null,
                 "accountId", null
@@ -106,7 +106,7 @@ public class AccountLinkingController {
             
             // 2. 验证用户状态必须为PENDING_BIND
             if (!"PENDING_BIND".equals(accountInfo.userStatus())) {
-                throw new IllegalStateException("当前账号状态不支持关联操作，状态: " + accountInfo.userStatus());
+                throw new IllegalStateException("当前账号状态不支持绑定操作，状态: " + accountInfo.userStatus());
             }
             
             // 3. 创建手机号对象
@@ -136,15 +136,15 @@ public class AccountLinkingController {
     }
     
     /**
-     * 通过手机号关联账号
+     * 通过手机号绑定账号
      * 利用当前认证信息，无需传递token参数
      * 
-     * @param request 手机号关联请求
-     * @return 关联成功后的登录结果
+     * @param request 手机号绑定请求
+     * @return 绑定成功后的登录结果
      */
-    @PostMapping("/phone/link")
-    public ResponseEntity<LoginResult> linkAccountByPhone(@RequestBody LinkByPhoneRequest request) {
-        log.info("通过手机号关联账号: phoneNumber={}", request.phoneNumber());
+    @PostMapping("/phone/bind")
+    public ResponseEntity<LoginResult> bindAccountByPhone(@RequestBody BindByPhoneRequest request) {
+        log.info("通过手机号绑定账号: phoneNumber={}", request.phoneNumber());
         
         try {
             // 1. 从Spring Security上下文获取账号信息
@@ -152,14 +152,14 @@ public class AccountLinkingController {
             
             // 2. 验证用户状态必须为PENDING_BIND
             if (!"PENDING_BIND".equals(accountInfo.userStatus())) {
-                throw new IllegalStateException("当前账号状态不支持关联操作，状态: " + accountInfo.userStatus());
+                throw new IllegalStateException("当前账号状态不支持绑定操作，状态: " + accountInfo.userStatus());
             }
             
             // 3. 创建手机号对象
             PhoneNumber phoneNumber = PhoneNumber.of(request.countryCode(), request.phoneNumber());
             
-            // 4. 使用关联服务进行关联（包含验证码验证）
-            Account linkedAccount = accountBindingService.bindAccountByPhoneVerification(
+            // 4. 使用绑定服务进行绑定（包含验证码验证）
+            Account boundAccount = accountBindingService.bindAccountByPhoneVerification(
                 accountInfo.accountId(), 
                 phoneNumber, 
                 request.verificationCode(),
@@ -167,33 +167,33 @@ public class AccountLinkingController {
             );
             
             // 5. 更新SecurityContext中的认证信息
-            Authentication newAuthentication = createAuthentication(linkedAccount);
+            Authentication newAuthentication = createAuthentication(boundAccount);
             SecurityContextHolder.getContext().setAuthentication(newAuthentication);
             
             // 6. 生成更新后的JWT
-            LoginResult result = unifiedJwtService.generateJwtFromAccount(linkedAccount);
+            LoginResult result = unifiedJwtService.generateJwtFromAccount(boundAccount);
        
-            log.info("账号关联成功: accountId={}, phoneNumber={}, userId={}", 
-                    accountInfo.accountId(), phoneNumber, linkedAccount.getUserId());
+            log.info("账号绑定成功: accountId={}, phoneNumber={}, userId={}", 
+                    accountInfo.accountId(), phoneNumber, boundAccount.getUserId());
             
             return ResponseEntity.ok(result);
             
         } catch (Exception e) {
-            log.error("账号关联失败: phoneNumber={}", request.phoneNumber(), e);
-            throw new RuntimeException("账号关联失败: " + e.getMessage(), e);
+            log.error("账号绑定失败: phoneNumber={}", request.phoneNumber(), e);
+            throw new RuntimeException("账号绑定失败: " + e.getMessage(), e);
         }
     }
 
     /**
-     * 通过密码关联账号
+     * 通过密码绑定账号
      * 利用当前认证信息，无需传递token参数
      * 
-     * @param request 密码关联请求
-     * @return 关联成功后的登录结果
+     * @param request 密码绑定请求
+     * @return 绑定成功后的登录结果
      */
-    @PostMapping("/password/link")
-    public ResponseEntity<LoginResult> linkAccountByPassword(@RequestBody LinkByPasswordRequest request) {
-        log.info("通过密码关联账号: existingUserIdentifier={}", request.existingUserIdentifier());
+    @PostMapping("/password/bind")
+    public ResponseEntity<LoginResult> bindAccountByPassword(@RequestBody BindByPasswordRequest request) {
+        log.info("通过密码绑定账号: existingUserIdentifier={}", request.existingUserIdentifier());
         
         try {
             // 1. 从Spring Security上下文获取账号信息
@@ -201,31 +201,31 @@ public class AccountLinkingController {
             
             // 2. 验证用户状态必须为PENDING_BIND
             if (!"PENDING_BIND".equals(accountInfo.userStatus())) {
-                throw new IllegalStateException("当前账号状态不支持关联操作，状态: " + accountInfo.userStatus());
+                throw new IllegalStateException("当前账号状态不支持绑定操作，状态: " + accountInfo.userStatus());
             }
             
-            // 3. 使用关联服务进行密码验证关联
-            Account linkedAccount = accountBindingService.bindAccountByPasswordVerification(
+            // 3. 使用绑定服务进行密码验证绑定
+            Account boundAccount = accountBindingService.bindAccountByPasswordVerification(
                 accountInfo.accountId(), 
                 request.existingUserIdentifier(),
                 request.password()
             );
             
             // 4. 更新SecurityContext中的认证信息
-            Authentication newAuthentication = createAuthentication(linkedAccount);
+            Authentication newAuthentication = createAuthentication(boundAccount);
             SecurityContextHolder.getContext().setAuthentication(newAuthentication);
             
             // 5. 生成更新后的JWT
-            LoginResult result = unifiedJwtService.generateJwtFromAccount(linkedAccount);
+            LoginResult result = unifiedJwtService.generateJwtFromAccount(boundAccount);
        
-            log.info("账号关联成功: accountId={}, existingUserIdentifier={}, userId={}", 
-                    accountInfo.accountId(), request.existingUserIdentifier(), linkedAccount.getUserId());
+            log.info("账号绑定成功: accountId={}, existingUserIdentifier={}, userId={}", 
+                    accountInfo.accountId(), request.existingUserIdentifier(), boundAccount.getUserId());
             
             return ResponseEntity.ok(result);
             
         } catch (Exception e) {
-            log.error("账号关联失败: existingUserIdentifier={}", request.existingUserIdentifier(), e);
-            throw new RuntimeException("账号关联失败: " + e.getMessage(), e);
+            log.error("账号绑定失败: existingUserIdentifier={}", request.existingUserIdentifier(), e);
+            throw new RuntimeException("账号绑定失败: " + e.getMessage(), e);
         }
     }
 
@@ -294,12 +294,12 @@ public class AccountLinkingController {
 
     /**
      * 创建认证对象
-     * 为关联成功的账号创建Spring Security的Authentication对象
+     * 为绑定成功的账号创建Spring Security的Authentication对象
      */
     private Authentication createAuthentication(Account account) {
         return new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
             account.getIdentifier(), 
-            null, // 关联后不需要密码
+            null, // 绑定后不需要密码
             java.util.Collections.singletonList(() -> "ROLE_USER")
         );
     }
@@ -314,7 +314,7 @@ public class AccountLinkingController {
     ) {}
     
     /**
-     * 发送手机验证码请求（移除了linkToken参数）
+     * 发送手机验证码请求
      */
     public record SendPhoneCodeRequest(
         String countryCode,    // 国家代码，如 "86"
@@ -322,9 +322,9 @@ public class AccountLinkingController {
     ) {}
     
     /**
-     * 通过手机号关联请求（移除了linkToken参数）
+     * 通过手机号绑定请求
      */
-    public record LinkByPhoneRequest(
+    public record BindByPhoneRequest(
         String countryCode,      // 国家代码
         String phoneNumber,      // 手机号
         String nickname,         // 用户昵称
@@ -332,9 +332,9 @@ public class AccountLinkingController {
     ) {}
     
     /**
-     * 通过密码关联请求（移除了linkToken参数）
+     * 通过密码绑定请求
      */
-    public record LinkByPasswordRequest(
+    public record BindByPasswordRequest(
         String existingUserIdentifier,  // 现有用户标识符（用户名/邮箱）
         String password                 // 用户密码
     ) {}
